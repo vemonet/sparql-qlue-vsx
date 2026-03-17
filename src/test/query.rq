@@ -1,0 +1,40 @@
+#+ endpoint: https://sparql.omabrowser.org/sparql/
+PREFIX orth: <http://purl.org/net/orth#>
+PREFIX obo:  <http://purl.obolibrary.org/obo/>
+PREFIX up:   <http://purl.uniprot.org/core/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX lscr: <http://purl.org/lscr#>
+PREFIX sio:  <http://semanticscience.org/resource/>
+PREFIX dc:   <http://purl.org/dc/elements/1.1/>
+
+SELECT DISTINCT
+  ?ratProtein ?ratProteinLabel ?ratOmaLink
+  ?ratUniprot
+  ?ratGeneId ?ratEnsemblGene ?ratNcbiGene
+WHERE {
+  # Human HBB protein in OMA
+  ?humanProtein a orth:Protein ;
+    rdfs:label "HBB" ;
+    orth:organism/obo:RO_0002162/up:scientificName "Homo sapiens" .
+
+  # Find orthologous proteins via an orthologs cluster
+  ?cluster a orth:OrthologsCluster ;
+    orth:hasHomologousMember ?node1 ;
+    orth:hasHomologousMember ?node2 .
+  ?node1 orth:hasHomologousMember* ?humanProtein .
+  ?node2 orth:hasHomologousMember* ?ratProtein .
+  FILTER(?node1 != ?node2)
+
+  # Keep only rat orthologs and return useful identifiers
+  ?ratProtein a orth:Protein ;
+    orth:organism/obo:RO_0002162/up:scientificName "Rattus norvegicus" ;
+    rdfs:seeAlso ?ratOmaLink ;
+    sio:SIO_010079 ?ratGene .
+
+  OPTIONAL { ?ratProtein rdfs:label ?ratProteinLabel . }
+  OPTIONAL { ?ratProtein lscr:xrefUniprot ?ratUniprot . }
+  OPTIONAL { ?ratGene dc:identifier ?ratGeneId . }
+  OPTIONAL { ?ratGene lscr:xrefEnsemblGene ?ratEnsemblGene . }
+  OPTIONAL { ?ratGene lscr:xrefNCBIGene ?ratNcbiGene . }
+}
+LIMIT 100

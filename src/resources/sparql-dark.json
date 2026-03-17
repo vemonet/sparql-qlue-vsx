@@ -1,0 +1,53 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "name": "SPARQL Solarized Dark",
+  "type": "dark",
+  "colors": {
+    "editor.foreground": "#839496",
+    "editor.background": "#002b36",
+    "editor.selectionBackground": "#073642",
+    "editor.lineHighlightBackground": "#073642",
+    "editorCursor.foreground": "#839496",
+    "editorWhitespace.foreground": "#586e75",
+    "editorIndentGuide.activeBackground1": "#586e75",
+    "editor.selectionHighlightBorder": "#d33682"
+  },
+  "tokenColors": [
+    {
+      "scope": ["keyword.control.sparql", "keyword.operator.prefixdecl.sparql"],
+      "settings": { "foreground": "#7C6CE6" }
+    },
+    {
+      "scope": "keyword.operator.function.sparql",
+      "settings": { "foreground": "#89ddff" }
+    },
+    {
+      "scope": ["variable.prefix.sparql", "variable.reference.sparql"],
+      "settings": { "foreground": "#d89a6a", "fontStyle": "italic" }
+    },
+    {
+      "scope": "variable.other.sparql",
+      "settings": { "foreground": "#82aaff" }
+    },
+    {
+      "scope": "constant.other.iri.sparql",
+      "settings": { "foreground": "#2aa198" }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": { "foreground": "#2aa198" }
+    },
+    {
+      "scope": "string",
+      "settings": { "foreground": "#c3a35d" }
+    },
+    {
+      "scope": "keyword.symbol",
+      "settings": { "foreground": "#7a8a8a", "fontStyle": "bold" }
+    },
+    {
+      "scope": ["comment", "punctuation.definition.comment"],
+      "settings": { "foreground": "#6a737d", "fontStyle": "italic" }
+    }
+  ]
+}

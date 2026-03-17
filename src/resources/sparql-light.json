@@ -1,0 +1,57 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "name": "SPARQL Light",
+  "type": "light",
+  "colors": {
+    "editor.foreground": "#586e75",
+    "editor.background": "#ffffff",
+    "editor.selectionBackground": "#eee8d5",
+    "editor.lineHighlightBackground": "#fdf6e3",
+    "editorCursor.foreground": "#002b36",
+    "editorWhitespace.foreground": "#93a1a1",
+    "editorIndentGuide.activeBackground1": "#cb4b1680",
+    "editor.selectionHighlightBorder": "#d33682"
+  },
+  "tokenColors": [
+    {
+      "scope": "keyword.control.sparql",
+      "settings": { "foreground": "#62036F" }
+    },
+    {
+      "scope": "keyword.operator.function.sparql",
+      "settings": { "foreground": "#cb4b16" }
+    },
+    {
+      "scope": "keyword.operator.prefixdecl.sparql",
+      "settings": { "foreground": "#62036F" }
+    },
+    {
+      "scope": "variable.prefix.sparql",
+      "settings": { "foreground": "#FF5600" }
+    },
+    {
+      "scope": "variable.reference.sparql",
+      "settings": { "foreground": "#FF5600" }
+    },
+    {
+      "scope": "variable.other.sparql",
+      "settings": { "foreground": "#219" }
+    },
+    {
+      "scope": "constant.other.iri.sparql",
+      "settings": { "foreground": "#085" }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": { "foreground": "#2aa198" }
+    },
+    {
+      "scope": "string",
+      "settings": { "foreground": "#AA1011" }
+    },
+    {
+      "scope": "keyword.symbol",
+      "settings": { "foreground": "#000" }
+    }
+  ]
+}

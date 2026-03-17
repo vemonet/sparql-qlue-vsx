@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src __CSP_SOURCE__ 'unsafe-inline'; script-src 'nonce-__NONCE__'; font-src __CSP_SOURCE__; img-src __CSP_SOURCE__ data:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="__YASR_CSS_URI__">
+  <style>
+    :root {
+      --bg: var(--vscode-editor-background);
+      --fg: var(--vscode-editor-foreground);
+      --input-bg: var(--vscode-input-background);
+      --input-fg: var(--vscode-input-foreground);
+      --input-border: var(--vscode-input-border);
+      --button-bg: var(--vscode-button-background);
+      --button-fg: var(--vscode-button-foreground);
+      --button-hover: var(--vscode-button-hoverBackground);
+      --error-fg: var(--vscode-errorForeground);
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      margin: 0;
+      padding: 12px;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .controls label {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    #endpointInput {
+      flex: 1;
+      min-width: 200px;
+      padding: 6px 10px;
+      background: var(--input-bg);
+      color: var(--input-fg);
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      font-size: inherit;
+      font-family: inherit;
+    }
+    #executeBtn {
+      padding: 6px 16px;
+      background: var(--button-bg);
+      color: var(--button-fg);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: inherit;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    #executeBtn:hover { background: var(--button-hover); }
+    #executeBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status {
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    .status.error {
+      background: var(--vscode-inputValidation-errorBackground, rgba(255, 0, 0, 0.1));
+      color: var(--error-fg);
+      border: 1px solid var(--vscode-inputValidation-errorBorder, red);
+    }
+    .status.info {
+      opacity: 0.7;
+      font-style: italic;
+    }
+    #results {
+      min-height: 200px;
+    }
+    /* Override YASR styles for dark theme compatibility */
+    .yasr { background: transparent !important; }
+    .yasr .dataTables_wrapper { color: var(--fg) !important; }
+    .yasr table.dataTable { color: var(--fg) !important; }
+    .yasr table.dataTable thead th { color: var(--fg) !important; }
+    .yasr .dataTables_info { color: var(--fg) !important; }
+    .yasr .dataTables_length { color: var(--fg) !important; }
+    .yasr .dataTables_filter { color: var(--fg) !important; }
+    /* Pagination buttons */
+    /* .yasr .dt-paging-button.disabled { color: var(--fg) !important; } */
+    .yasr .dt-paging-button.disabled { opacity: 0.4; }
+    pre.raw-results {
+      background: var(--input-bg);
+      color: var(--fg);
+      padding: 12px;
+      border-radius: 4px;
+      overflow: auto;
+      max-height: 80vh;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <label for="endpointInput">Endpoint:</label>
+    <input type="url" id="endpointInput" placeholder="https://query.wikidata.org/sparql" />
+    <button id="executeBtn">&#9654; Execute</button>
+  </div>
+  <div id="status"></div>
+  <div id="results"></div>
+
+  <script nonce="__NONCE__" src="__YASR_JS_URI__"></script>
+  <script nonce="__NONCE__">
+    const vscode = acquireVsCodeApi();
+    const endpointInput = document.getElementById('endpointInput');
+    const executeBtn = document.getElementById('executeBtn');
+    const statusDiv = document.getElementById('status');
+    const resultsDiv = document.getElementById('results');
+
+    let currentQuery = '';
+    let yasrInstance = null;
+
+    executeBtn.addEventListener('click', () => {
+      execute();
+    });
+
+    endpointInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { execute(); }
+    });
+
+    function execute() {
+      const endpoint = endpointInput.value.trim();
+      if (!endpoint) {
+        showStatus('Please enter a SPARQL endpoint URL.', 'error');
+        return;
+      }
+      if (!currentQuery.trim()) {
+        showStatus('No query to execute. Open a .rq or .sparql file.', 'error');
+        return;
+      }
+      executeBtn.disabled = true;
+      showStatus('Executing query...', 'info');
+      vscode.postMessage({
+        type: 'executeQuery',
+        query: currentQuery,
+        endpoint: endpoint,
+      });
+    }
+
+    function showStatus(msg, type) {
+      statusDiv.className = 'status ' + type;
+      statusDiv.textContent = msg;
+    }
+
+    function clearStatus() {
+      statusDiv.className = '';
+      statusDiv.textContent = '';
+    }
+
+    window.addEventListener('message', (event) => {
+      const msg = event.data;
+      switch (msg.type) {
+        case 'update':
+          currentQuery = msg.query || '';
+          if (msg.endpoint) {
+            endpointInput.value = msg.endpoint;
+          }
+          clearStatus();
+          if (msg.autoExecute) {
+            execute();
+          }
+          break;
+
+        case 'results':
+          executeBtn.disabled = false;
+          clearStatus();
+          displayResults(msg.data, msg.contentType, msg.queryType);
+          break;
+
+        case 'error':
+          executeBtn.disabled = false;
+          showStatus(msg.message, 'error');
+          break;
+      }
+    });
+
+    function displayResults(data, contentType, queryType) {
+      resultsDiv.innerHTML = '';
+
+      if (contentType.includes('sparql-results+json')) {
+        // SELECT / ASK results — use YASR table
+        try {
+          yasrInstance = new Yasr(resultsDiv, {
+            pluginOrder: ['table', 'response'],
+            defaultPlugin: 'table',
+          });
+          yasrInstance.setResponse({
+            data: data,
+            contentType: 'application/sparql-results+json',
+            status: 200,
+            executionTime: 0,
+          });
+        } catch (e) {
+          resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
+        }
+      } else if (
+        contentType.includes('turtle') ||
+        contentType.includes('n-triples') ||
+        contentType.includes('ld+json') ||
+        contentType.includes('rdf+xml')
+      ) {
+        // CONSTRUCT / DESCRIBE results — show via YASR response plugin
+        try {
+          yasrInstance = new Yasr(resultsDiv, {
+            pluginOrder: ['response'],
+            defaultPlugin: 'response',
+          });
+          yasrInstance.setResponse({
+            data: data,
+            contentType: contentType,
+            status: 200,
+            executionTime: 0,
+          });
+        } catch (e) {
+          resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
+        }
+      } else {
+        resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

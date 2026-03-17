@@ -1,0 +1,40 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "name": "SPARQL Solarized Dark",
+  "type": "dark",
+  "tokenColors": [
+    {
+      "scope": ["keyword.control.sparql", "keyword.operator.prefixdecl.sparql"],
+      "settings": { "foreground": "#c792ea" }
+    },
+    {
+      "scope": "keyword.operator.function.sparql",
+      "settings": { "foreground": "#89ddff" }
+    },
+    {
+      "scope": ["variable.prefix.sparql", "variable.reference.sparql"],
+      "settings": { "foreground": "#f0a87c", "fontStyle": "italic" }
+    },
+    {
+      "scope": "variable.other.sparql",
+      "settings": { "foreground": "#82aaff" }
+    },
+    {
+      "scope": "constant.other.iri.sparql",
+      "settings": { "foreground": "#2aa198" }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": { "foreground": "#2aa198" }
+    },
+    {
+      "scope": "string",
+      "settings": { "foreground": "#c3a35d" }
+    },
+    {
+      "scope": "keyword.symbol",
+      "settings": { "foreground": "#7a8a8a", "fontStyle": "bold" }
+    }
+  ]
+}
+
