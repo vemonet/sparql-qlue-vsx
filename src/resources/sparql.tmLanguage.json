@@ -32,33 +32,25 @@
           "name": "string.quoted.triple.double.sparql",
           "begin": "\"\"\"",
           "end": "\"\"\"",
-          "patterns": [
-            { "include": "#string-escapes" }
-          ]
+          "patterns": [{ "include": "#string-escapes" }]
         },
         {
           "name": "string.quoted.triple.single.sparql",
           "begin": "'''",
           "end": "'''",
-          "patterns": [
-            { "include": "#string-escapes" }
-          ]
+          "patterns": [{ "include": "#string-escapes" }]
         },
         {
           "name": "string.quoted.double.sparql",
           "begin": "\"",
           "end": "\"",
-          "patterns": [
-            { "include": "#string-escapes" }
-          ]
+          "patterns": [{ "include": "#string-escapes" }]
         },
         {
           "name": "string.quoted.single.sparql",
           "begin": "'",
           "end": "'",
-          "patterns": [
-            { "include": "#string-escapes" }
-          ]
+          "patterns": [{ "include": "#string-escapes" }]
         }
       ]
     },

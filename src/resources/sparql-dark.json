@@ -1,53 +1,52 @@
 {
   "$schema": "vscode://schemas/color-theme",
-  "name": "SPARQL Solarized Dark",
+  "name": "SPARQL Dark",
   "type": "dark",
-  "colors": {
-    "editor.foreground": "#839496",
-    "editor.background": "#002b36",
-    "editor.selectionBackground": "#073642",
-    "editor.lineHighlightBackground": "#073642",
-    "editorCursor.foreground": "#839496",
-    "editorWhitespace.foreground": "#586e75",
-    "editorIndentGuide.activeBackground1": "#586e75",
-    "editor.selectionHighlightBorder": "#d33682"
-  },
   "tokenColors": [
     {
+      "name": "SPARQL structural keywords (SELECT, WHERE, PREFIX…)",
       "scope": ["keyword.control.sparql", "keyword.operator.prefixdecl.sparql"],
-      "settings": { "foreground": "#7C6CE6" }
+      "settings": { "foreground": "#6c71c4" }
     },
     {
+      "name": "SPARQL built-in functions (FILTER, BIND, STR, LANG…)",
       "scope": "keyword.operator.function.sparql",
-      "settings": { "foreground": "#89ddff" }
+      "settings": { "foreground": "#268bd2" }
     },
     {
+      "name": "Prefixed names / CURIE namespace part",
       "scope": ["variable.prefix.sparql", "variable.reference.sparql"],
-      "settings": { "foreground": "#d89a6a", "fontStyle": "italic" }
+      "settings": { "foreground": "#cb4b16", "fontStyle": "italic" }
     },
     {
+      "name": "SPARQL variables (?x, ?name…)",
       "scope": "variable.other.sparql",
-      "settings": { "foreground": "#82aaff" }
+      "settings": { "foreground": "#7a9bb5" }
     },
     {
+      "name": "Full IRIs (<http://…>)",
       "scope": "constant.other.iri.sparql",
       "settings": { "foreground": "#2aa198" }
     },
     {
+      "name": "Numeric literals",
       "scope": "constant.numeric",
       "settings": { "foreground": "#2aa198" }
     },
     {
+      "name": "String literals",
       "scope": "string",
-      "settings": { "foreground": "#c3a35d" }
+      "settings": { "foreground": "#b58900" }
     },
     {
+      "name": "Punctuation / symbols",
       "scope": "keyword.symbol",
-      "settings": { "foreground": "#7a8a8a", "fontStyle": "bold" }
+      "settings": { "foreground": "#586e75", "fontStyle": "bold" }
     },
     {
+      "name": "Comments",
       "scope": ["comment", "punctuation.definition.comment"],
-      "settings": { "foreground": "#6a737d", "fontStyle": "italic" }
+      "settings": { "foreground": "#586e75", "fontStyle": "italic" }
     }
   ]
 }

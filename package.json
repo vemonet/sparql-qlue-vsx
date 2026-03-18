@@ -18,9 +18,6 @@
     "Linters",
     "Themes"
   ],
-  "activationEvents": [
-    "onStartupFinished"
-  ],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [
@@ -79,7 +76,25 @@
       {
         "command": "sparql-qlue.executeQuery",
         "title": "Execute SPARQL Query",
+        "category": "SPARQL Qlue",
         "icon": "$(play)"
+      },
+      {
+        "command": "sparql-qlue.showQueryPanel",
+        "title": "Show Query Panel",
+        "category": "SPARQL Qlue",
+        "icon": "$(output)"
+      },
+      {
+        "command": "sparql-qlue.openServerSettings",
+        "title": "Configure SPARQL Language Server",
+        "category": "SPARQL Qlue",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "sparql-qlue.sparqlMenu",
+        "title": "SPARQL Qlue Menu",
+        "category": "SPARQL Qlue"
       }
     ],
     "configuration": {
@@ -89,6 +104,11 @@
           "type": "boolean",
           "default": false,
           "description": "Automatically format SPARQL documents via the language server when saving."
+        },
+        "sparql-qlue.serverSettings": {
+          "type": "object",
+          "default": {},
+          "description": "Language server settings (format, completion, prefixes). Managed via the SPARQL Qlue: Configure Language Server command."
         }
       }
     },
@@ -104,12 +124,12 @@
         {
           "command": "sparql-qlue.executeQuery",
           "when": "resourceLangId == sparql",
-          "group": "1_sparql"
+          "group": "1_sparql@1"
         },
         {
-          "command": "sparql-qlue.showQueryPanel",
+          "command": "sparql-qlue.openServerSettings",
           "when": "resourceLangId == sparql",
-          "group": "1_sparql"
+          "group": "1_sparql@2"
         }
       ],
       "explorer/context": [
@@ -140,15 +160,17 @@
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "npm run check-types && npm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production && vsce package",
+    "pretest": "tsc -p . --outDir out && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src",
+    "fmt": "prettier --write . && eslint --fix src",
+    "lint": "eslint src && prettier --check .",
     "test": "vscode-test",
-    "package:vsce": "vsce package",
-    "package:ovsx": "ovsx package",
+    "prepare": "husky",
+    "upgrade": "npx npm-check-updates -u",
+    "changelog": "git cliff -o CHANGELOG.md --tag $(npm pkg get version | tr -d \\\")",
+    "version": "npm run package && git cliff -o CHANGELOG.md --tag $(npm pkg get version | tr -d \\\") && git add CHANGELOG.md",
+    "postversion": "git tag v$(npm pkg get version | tr -d \\\") && git push origin v$(npm pkg get version | tr -d \\\")",
     "publish:vsce": "vsce package && vsce publish",
     "publish:ovsx": "ovsx publish",
     "publish:all": "npm run publish:vsce && npm run publish:ovsx"
@@ -162,6 +184,7 @@
     "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.27.3",
     "eslint": "^9.39.3",
+    "git-cliff": "^2.12.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "npm-run-all": "^4.1.5",
@@ -178,17 +201,21 @@
   },
   "prettier": {
     "useTabs": false,
+    "singleQuote": true,
     "printWidth": 120
   },
   "lint-staged": {
     "*.ts?(x)": [
-      "prettier --parser typescript --write"
+      "prettier --parser typescript --write",
+      "eslint --fix"
     ],
     "*.html": [
-      "prettier --write"
+      "prettier --write",
+      "eslint --fix"
     ],
     "*.css": [
-      "prettier --parser css --write"
+      "prettier --parser css --write",
+      "eslint --fix"
     ]
   }
 }

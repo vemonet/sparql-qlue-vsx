@@ -2,56 +2,51 @@
   "$schema": "vscode://schemas/color-theme",
   "name": "SPARQL Light",
   "type": "light",
-  "colors": {
-    "editor.foreground": "#586e75",
-    "editor.background": "#ffffff",
-    "editor.selectionBackground": "#eee8d5",
-    "editor.lineHighlightBackground": "#fdf6e3",
-    "editorCursor.foreground": "#002b36",
-    "editorWhitespace.foreground": "#93a1a1",
-    "editorIndentGuide.activeBackground1": "#cb4b1680",
-    "editor.selectionHighlightBorder": "#d33682"
-  },
   "tokenColors": [
     {
-      "scope": "keyword.control.sparql",
-      "settings": { "foreground": "#62036F" }
+      "name": "SPARQL structural keywords (SELECT, WHERE, PREFIX…)",
+      "scope": ["keyword.control.sparql", "keyword.operator.prefixdecl.sparql"],
+      "settings": { "foreground": "#6c71c4" }
     },
     {
+      "name": "SPARQL built-in functions (FILTER, BIND, STR, LANG…)",
       "scope": "keyword.operator.function.sparql",
-      "settings": { "foreground": "#cb4b16" }
+      "settings": { "foreground": "#268bd2" }
     },
     {
-      "scope": "keyword.operator.prefixdecl.sparql",
-      "settings": { "foreground": "#62036F" }
+      "name": "Prefixed names / CURIE namespace part",
+      "scope": ["variable.prefix.sparql", "variable.reference.sparql"],
+      "settings": { "foreground": "#cb4b16", "fontStyle": "italic" }
     },
     {
-      "scope": "variable.prefix.sparql",
-      "settings": { "foreground": "#FF5600" }
-    },
-    {
-      "scope": "variable.reference.sparql",
-      "settings": { "foreground": "#FF5600" }
-    },
-    {
+      "name": "SPARQL variables (?x, ?name…)",
       "scope": "variable.other.sparql",
-      "settings": { "foreground": "#219" }
+      "settings": { "foreground": "#4a7a9b" }
     },
     {
+      "name": "Full IRIs (<http://…>)",
       "scope": "constant.other.iri.sparql",
-      "settings": { "foreground": "#085" }
+      "settings": { "foreground": "#2aa198" }
     },
     {
+      "name": "Numeric literals",
       "scope": "constant.numeric",
       "settings": { "foreground": "#2aa198" }
     },
     {
+      "name": "String literals",
       "scope": "string",
-      "settings": { "foreground": "#AA1011" }
+      "settings": { "foreground": "#b58900" }
     },
     {
+      "name": "Punctuation / symbols",
       "scope": "keyword.symbol",
-      "settings": { "foreground": "#000" }
+      "settings": { "foreground": "#93a1a1", "fontStyle": "bold" }
+    },
+    {
+      "name": "Comments",
+      "scope": ["comment", "punctuation.definition.comment"],
+      "settings": { "foreground": "#93a1a1", "fontStyle": "italic" }
     }
   ]
 }

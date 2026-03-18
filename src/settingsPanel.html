@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src __CSP_SOURCE__ 'unsafe-inline'; script-src 'nonce-__NONCE__';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SPARQL Qlue Server Settings</title>
+    <style>
+      :root {
+        --bg: var(--vscode-editor-background);
+        --fg: var(--vscode-editor-foreground);
+        --input-bg: var(--vscode-input-background);
+        --input-fg: var(--vscode-input-foreground);
+        --input-border: var(--vscode-input-border, #555);
+        --button-bg: var(--vscode-button-background);
+        --button-fg: var(--vscode-button-foreground);
+        --button-hover: var(--vscode-button-hoverBackground);
+        --border: var(--vscode-panel-border, var(--vscode-input-border, #444));
+        --desc-fg: var(--vscode-descriptionForeground);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--vscode-font-family);
+        font-size: var(--vscode-font-size);
+        margin: 0;
+        padding: 16px 20px 24px;
+        max-width: 680px;
+      }
+      h1 {
+        font-size: 1.15em;
+        font-weight: 600;
+        margin: 0 0 18px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      h2 {
+        font-size: 0.8em;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--desc-fg);
+        margin: 22px 0 6px;
+      }
+      .section {
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        gap: 12px;
+      }
+      .row:last-child {
+        border-bottom: none;
+      }
+      .label {
+        flex: 1;
+        min-width: 0;
+      }
+      .label-name {
+        font-weight: 500;
+        font-family: var(--vscode-editor-font-family, monospace);
+        font-size: 0.95em;
+      }
+      .label-desc {
+        font-size: 0.82em;
+        color: var(--desc-fg);
+        margin-top: 1px;
+      }
+      .control {
+        flex-shrink: 0;
+      }
+
+      /* Toggle switch */
+      .toggle {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 21px;
+      }
+      .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+      }
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: var(--input-border);
+        border-radius: 21px;
+        transition: background 0.15s;
+      }
+      .toggle-slider::before {
+        content: '';
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        left: 3px;
+        top: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.15s;
+      }
+      .toggle input:checked + .toggle-slider {
+        background: var(--button-bg);
+      }
+      .toggle input:checked + .toggle-slider::before {
+        transform: translateX(17px);
+      }
+
+      /* Number input */
+      input[type='number'] {
+        width: 86px;
+        padding: 4px 8px;
+        background: var(--input-bg);
+        color: var(--input-fg);
+        border: 1px solid var(--input-border);
+        border-radius: 3px;
+        font-size: inherit;
+        font-family: inherit;
+        text-align: right;
+      }
+      input[type='number']:focus {
+        outline: 1px solid var(--button-bg);
+        outline-offset: -1px;
+      }
+
+      /* Acknowledgements */
+      .ack {
+        font-size: 0.85em;
+        color: var(--desc-fg);
+        margin: 6px 0 0;
+        line-height: 1.5;
+      }
+      .ack a {
+        color: var(--vscode-textLink-foreground, #4daafc);
+        text-decoration: none;
+      }
+      .ack a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SPARQL Qlue Language Server Settings</h1>
+
+    <h2>Format</h2>
+    <div class="section" id="fmt-section"></div>
+
+    <h2>Completion</h2>
+    <div class="section" id="cmp-section"></div>
+
+    <h2>Prefixes</h2>
+    <div class="section" id="pfx-section"></div>
+
+    <h2>Acknowledgements</h2>
+    <p class="ack">
+      Diagnostics, autocomplete, and formatting powered by the
+      <a href="https://github.com/IoannisNezis/Qlue-ls">qlue-ls</a> language server running via WebAssembly.
+    </p>
+    <p class="ack">
+      Query execution and results display using the
+      <a href="https://github.com/rdfjs/Yasgui">YASGUI</a> YASR component.
+    </p>
+
+    <script nonce="__NONCE__">
+      const vscode = acquireVsCodeApi();
+      const initial = __SETTINGS__;
+
+      const FIELDS = {
+        fmt: [
+          ['alignPredicates', 'bool', 'alignPredicates', 'Align triple predicates in a column'],
+          ['alignPrefixes', 'bool', 'alignPrefixes', 'Align PREFIX declarations in a column'],
+          ['separatePrologue', 'bool', 'separatePrologue', 'Blank line between prologue and query body'],
+          ['capitalizeKeywords', 'bool', 'capitalizeKeywords', 'Uppercase SPARQL keywords (SELECT, WHERE, …)'],
+          ['insertSpaces', 'bool', 'insertSpaces', 'Indent with spaces (off = tabs)'],
+          ['tabSize', 'number', 'tabSize', 'Number of spaces per indentation level'],
+          ['whereNewLine', 'bool', 'whereNewLine', 'Place WHERE clause on its own line'],
+          ['filterSameLine', 'bool', 'filterSameLine', 'Keep FILTER on the same line as its block'],
+          ['lineLength', 'number', 'lineLength', 'Target line length for wrapping'],
+          ['contractTriples', 'bool', 'contractTriples', 'Use ; notation to contract triples with the same subject'],
+          ['keepEmptyLines', 'bool', 'keepEmptyLines', 'Preserve intentional blank lines from the original source'],
+        ],
+        cmp: [
+          ['timeoutMs', 'number', 'timeoutMs', 'SPARQL query timeout for completion requests (ms)'],
+          ['resultSizeLimit', 'number', 'resultSizeLimit', 'Maximum number of completion items returned'],
+          [
+            'subjectCompletionTriggerLength',
+            'number',
+            'subjectCompletionTriggerLength',
+            'Minimum typed characters before subject completion fires',
+          ],
+          [
+            'objectCompletionSuffix',
+            'bool',
+            'objectCompletionSuffix',
+            'Append a trailing space/dot after inserting an object completion',
+          ],
+          ['variableCompletionLimit', 'number', 'variableCompletionLimit', 'Maximum variable completion suggestions'],
+          [
+            'sameSubjectSemicolon',
+            'bool',
+            'sameSubjectSemicolon',
+            'Use semicolon notation when completing predicates for a repeated subject',
+          ],
+        ],
+        pfx: [
+          ['addMissing', 'bool', 'addMissing', 'Automatically insert missing PREFIX declarations'],
+          ['removeUnused', 'bool', 'removeUnused', 'Remove PREFIX declarations that are not used in the query'],
+        ],
+      };
+
+      // Map from section id prefix → TOML key
+      const SECTION_KEYS = { fmt: 'format', cmp: 'completion', pfx: 'prefixes' };
+
+      const DEFAULTS = {
+        format: {
+          alignPredicates: false,
+          alignPrefixes: false,
+          separatePrologue: true,
+          capitalizeKeywords: true,
+          insertSpaces: true,
+          tabSize: 2,
+          whereNewLine: false,
+          filterSameLine: true,
+          lineLength: 120,
+          contractTriples: false,
+          keepEmptyLines: false,
+        },
+        completion: {
+          timeoutMs: 10000,
+          resultSizeLimit: 50,
+          subjectCompletionTriggerLength: 3,
+          objectCompletionSuffix: true,
+          variableCompletionLimit: 10,
+          sameSubjectSemicolon: true,
+        },
+        prefixes: { addMissing: true, removeUnused: false },
+      };
+
+      function renderSection(sectionPrefix) {
+        const container = document.getElementById(`${sectionPrefix}-section`);
+        const tomlKey = SECTION_KEYS[sectionPrefix];
+        const values = Object.assign({}, DEFAULTS[tomlKey], (initial || {})[tomlKey] || {});
+        for (const [id, type, tomlField, desc] of FIELDS[sectionPrefix]) {
+          const val = values[tomlField];
+          const row = document.createElement('div');
+          row.className = 'row';
+          const control =
+            type === 'bool'
+              ? `<label class="toggle"><input type="checkbox" id="${sectionPrefix}_${id}" ${val ? 'checked' : ''}><span class="toggle-slider"></span></label>`
+              : `<input type="number" id="${sectionPrefix}_${id}" value="${val ?? 0}">`;
+          row.innerHTML = `
+          <div class="label">
+            <div class="label-name">${tomlField}</div>
+            <div class="label-desc">${desc}</div>
+          </div>
+          <div class="control">${control}</div>`;
+          container.appendChild(row);
+        }
+      }
+
+      renderSection('fmt');
+      renderSection('cmp');
+      renderSection('pfx');
+
+      function readSection(sectionPrefix) {
+        const tomlKey = SECTION_KEYS[sectionPrefix];
+        const out = {};
+        for (const [id, type, tomlField] of FIELDS[sectionPrefix]) {
+          const el = document.getElementById(`${sectionPrefix}_${id}`);
+          if (!el) continue;
+          out[tomlField] = type === 'bool' ? el.checked : Number(el.value);
+        }
+        return out;
+      }
+
+      function applySettings(s) {
+        for (const [prefix, tomlKey] of Object.entries(SECTION_KEYS)) {
+          const sec = (s || {})[tomlKey] || {};
+          for (const [id, type, tomlField] of FIELDS[prefix]) {
+            const el = document.getElementById(`${prefix}_${id}`);
+            if (!el || !(tomlField in sec)) continue;
+            if (type === 'bool') el.checked = Boolean(sec[tomlField]);
+            else el.value = String(sec[tomlField]);
+          }
+        }
+      }
+
+      function saveAllSettings() {
+        vscode.postMessage({
+          type: 'save',
+          settings: {
+            format: readSection('fmt'),
+            completion: readSection('cmp'),
+            prefixes: readSection('pfx'),
+          },
+        });
+      }
+
+      // Checkboxes save immediately; number fields debounce to avoid saving mid-typing
+      let autoSaveTimer;
+      function scheduleAutoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(saveAllSettings, 400);
+      }
+
+      document.querySelectorAll('.section input[type="checkbox"]').forEach((el) => {
+        el.addEventListener('change', saveAllSettings);
+      });
+      document.querySelectorAll('.section input[type="number"]').forEach((el) => {
+        el.addEventListener('input', scheduleAutoSave);
+      });
+
+      // Accept settings pushed from the extension when the panel is revealed
+      window.addEventListener('message', (event) => {
+        const msg = event.data;
+        if (msg.type === 'set' && msg.settings) applySettings(msg.settings);
+      });
+    </script>
+  </body>
+</html>

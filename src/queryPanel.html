@@ -1,240 +1,555 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src __CSP_SOURCE__ 'unsafe-inline'; script-src 'nonce-__NONCE__'; font-src __CSP_SOURCE__; img-src __CSP_SOURCE__ data:;">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="__YASR_CSS_URI__">
-  <style>
-    :root {
-      --bg: var(--vscode-editor-background);
-      --fg: var(--vscode-editor-foreground);
-      --input-bg: var(--vscode-input-background);
-      --input-fg: var(--vscode-input-foreground);
-      --input-border: var(--vscode-input-border);
-      --button-bg: var(--vscode-button-background);
-      --button-fg: var(--vscode-button-foreground);
-      --button-hover: var(--vscode-button-hoverBackground);
-      --error-fg: var(--vscode-errorForeground);
-    }
-    * { box-sizing: border-box; }
-    body {
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--vscode-font-family);
-      font-size: var(--vscode-font-size);
-      margin: 0;
-      padding: 12px;
-    }
-    .controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    .controls label {
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    #endpointInput {
-      flex: 1;
-      min-width: 200px;
-      padding: 6px 10px;
-      background: var(--input-bg);
-      color: var(--input-fg);
-      border: 1px solid var(--input-border);
-      border-radius: 4px;
-      font-size: inherit;
-      font-family: inherit;
-    }
-    #executeBtn {
-      padding: 6px 16px;
-      background: var(--button-bg);
-      color: var(--button-fg);
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: inherit;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    #executeBtn:hover { background: var(--button-hover); }
-    #executeBtn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .status {
-      padding: 8px;
-      margin-bottom: 8px;
-      border-radius: 4px;
-    }
-    .status.error {
-      background: var(--vscode-inputValidation-errorBackground, rgba(255, 0, 0, 0.1));
-      color: var(--error-fg);
-      border: 1px solid var(--vscode-inputValidation-errorBorder, red);
-    }
-    .status.info {
-      opacity: 0.7;
-      font-style: italic;
-    }
-    #results {
-      min-height: 200px;
-    }
-    /* Override YASR styles for dark theme compatibility */
-    .yasr { background: transparent !important; }
-    .yasr .dataTables_wrapper { color: var(--fg) !important; }
-    .yasr table.dataTable { color: var(--fg) !important; }
-    .yasr table.dataTable thead th { color: var(--fg) !important; }
-    .yasr .dataTables_info { color: var(--fg) !important; }
-    .yasr .dataTables_length { color: var(--fg) !important; }
-    .yasr .dataTables_filter { color: var(--fg) !important; }
-    /* Pagination buttons */
-    /* .yasr .dt-paging-button.disabled { color: var(--fg) !important; } */
-    .yasr .dt-paging-button.disabled { opacity: 0.4; }
-    pre.raw-results {
-      background: var(--input-bg);
-      color: var(--fg);
-      padding: 12px;
-      border-radius: 4px;
-      overflow: auto;
-      max-height: 80vh;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-  </style>
-</head>
-<body>
-  <div class="controls">
-    <label for="endpointInput">Endpoint:</label>
-    <input type="url" id="endpointInput" placeholder="https://query.wikidata.org/sparql" />
-    <button id="executeBtn">&#9654; Execute</button>
-  </div>
-  <div id="status"></div>
-  <div id="results"></div>
-
-  <script nonce="__NONCE__" src="__YASR_JS_URI__"></script>
-  <script nonce="__NONCE__">
-    const vscode = acquireVsCodeApi();
-    const endpointInput = document.getElementById('endpointInput');
-    const executeBtn = document.getElementById('executeBtn');
-    const statusDiv = document.getElementById('status');
-    const resultsDiv = document.getElementById('results');
-
-    let currentQuery = '';
-    let yasrInstance = null;
-
-    executeBtn.addEventListener('click', () => {
-      execute();
-    });
-
-    endpointInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { execute(); }
-    });
-
-    function execute() {
-      const endpoint = endpointInput.value.trim();
-      if (!endpoint) {
-        showStatus('Please enter a SPARQL endpoint URL.', 'error');
-        return;
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src __CSP_SOURCE__ 'unsafe-inline'; script-src 'nonce-__NONCE__'; font-src __CSP_SOURCE__; img-src __CSP_SOURCE__ data:;"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="__YASR_CSS_URI__" />
+    <style>
+      :root {
+        --bg: var(--vscode-editor-background);
+        --fg: var(--vscode-editor-foreground);
+        --input-bg: var(--vscode-input-background);
+        --input-fg: var(--vscode-input-foreground);
+        --input-border: var(--vscode-input-border);
+        --button-bg: var(--vscode-button-background);
+        --button-fg: var(--vscode-button-foreground);
+        --button-hover: var(--vscode-button-hoverBackground);
+        --error-fg: var(--vscode-errorForeground);
       }
-      if (!currentQuery.trim()) {
-        showStatus('No query to execute. Open a .rq or .sparql file.', 'error');
-        return;
+      * {
+        box-sizing: border-box;
       }
-      executeBtn.disabled = true;
-      showStatus('Executing query...', 'info');
-      vscode.postMessage({
-        type: 'executeQuery',
-        query: currentQuery,
-        endpoint: endpoint,
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--vscode-font-family);
+        font-size: var(--vscode-font-size);
+        margin: 0;
+        padding: 12px;
+      }
+      .controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .controls label {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      #endpointInput {
+        flex: 1;
+        min-width: 200px;
+        padding: 6px 10px;
+        background: var(--input-bg);
+        color: var(--input-fg);
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        font-size: inherit;
+        font-family: inherit;
+      }
+      .endpoint-wrap {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+      }
+      #endpointInput {
+        width: 100%;
+      }
+      #endpointDropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: var(--vscode-dropdown-background, var(--input-bg));
+        border: 1px solid var(--vscode-focusBorder, var(--input-border));
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      #endpointDropdown.open {
+        display: block;
+      }
+      .endpoint-option {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: inherit;
+        font-family: inherit;
+        color: var(--input-fg);
+      }
+      .endpoint-option:hover,
+      .endpoint-option.active {
+        background: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.2));
+      }
+      .endpoint-option-label {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .endpoint-delete {
+        flex-shrink: 0;
+        margin-left: 6px;
+        padding: 0 4px;
+        background: transparent;
+        border: none;
+        color: var(--desc-fg, var(--input-fg));
+        cursor: pointer;
+        font-size: 0.9em;
+        line-height: 1;
+        opacity: 0.5;
+        border-radius: 3px;
+      }
+      .endpoint-delete:hover {
+        opacity: 1;
+        background: var(--vscode-inputValidation-errorBackground, rgba(255, 0, 0, 0.15));
+        color: var(--vscode-errorForeground, red);
+      }
+      #executeBtn {
+        width: 40px;
+        padding: 6px 0;
+        background: var(--button-bg);
+        color: var(--button-fg);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: inherit;
+        font-weight: 600;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      #executeBtn:hover {
+        background: var(--button-hover);
+      }
+      #executeBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      #executeBtn.loading {
+        background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, 0.2));
+        color: var(--vscode-button-secondaryForeground, var(--fg));
+        border: 1px solid var(--input-border);
+      }
+      #executeBtn.loading:hover {
+        background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, 0.3));
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes counter-spin {
+        to {
+          transform: translate(-50%, -50%) rotate(-360deg);
+        }
+      }
+      .btn-spinner {
+        position: relative;
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.65s linear infinite;
+        vertical-align: middle;
+      }
+      .btn-spinner::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 5px;
+        height: 5px;
+        background: currentColor;
+        border-radius: 1px;
+        animation: counter-spin 0.65s linear infinite;
+      }
+      .status {
+        padding: 8px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+      }
+      .status.error {
+        background: var(--vscode-inputValidation-errorBackground, rgba(255, 0, 0, 0.1));
+        color: var(--error-fg);
+        border: 1px solid var(--vscode-inputValidation-errorBorder, red);
+      }
+      .status.info {
+        opacity: 0.7;
+        font-style: italic;
+      }
+      #results {
+        min-height: 200px;
+      }
+      /* Override YASR styles for dark theme compatibility */
+      .yasr {
+        background: transparent !important;
+      }
+      .yasr .dataTables_wrapper {
+        color: var(--fg) !important;
+      }
+      .yasr table.dataTable {
+        color: var(--fg) !important;
+      }
+      .yasr table.dataTable thead th {
+        color: var(--fg) !important;
+      }
+      .yasr .dataTables_info {
+        color: var(--fg) !important;
+      }
+      .yasr .dataTables_length {
+        color: var(--fg) !important;
+      }
+      .yasr .dataTables_filter {
+        color: var(--fg) !important;
+      }
+      /* Pagination buttons */
+      /* .yasr .dt-paging-button.disabled { color: var(--fg) !important; } */
+      .yasr .dt-paging-button.disabled {
+        opacity: 0.4;
+      }
+      /* YASR response plugin (CONSTRUCT/DESCRIBE raw text view) */
+      .yasr .yasr_response,
+      .yasr .yasr_response pre,
+      .yasr .yasr_response textarea,
+      .yasr .CodeMirror,
+      .yasr .CodeMirror-scroll {
+        background: var(--input-bg) !important;
+        color: var(--fg) !important;
+        border-color: var(--input-border) !important;
+      }
+      .yasr .CodeMirror-gutters {
+        background: var(--vscode-editorGutter-background, var(--input-bg)) !important;
+        border-color: var(--input-border) !important;
+      }
+      .yasr .CodeMirror-linenumber {
+        color: var(--vscode-editorLineNumber-foreground, var(--fg)) !important;
+      }
+      /* Plugin tab bar */
+      /* .yasr .yasr_header .yasr_btn,
+      .yasr .yasr_header button {
+        background: transparent !important;
+        color: var(--fg) !important;
+        border-color: var(--input-border) !important;
+      } */
+      .yasr .yasr_header .yasr_btn:hover,
+      .yasr .yasr_header button:hover {
+        background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.15)) !important;
+      }
+      /* Download/copy action buttons */
+      .yasr .yasr_downloadIcon,
+      .yasr .yasr_copyIcon {
+        filter: var(--vscode-editor-background, none) invert(1) brightness(2);
+      }
+      pre.raw-results {
+        background: var(--input-bg);
+        color: var(--fg);
+        padding: 12px;
+        border-radius: 4px;
+        overflow: auto;
+        max-height: 80vh;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <label for="endpointInput">Endpoint:</label>
+      <div class="endpoint-wrap">
+        <input
+          type="text"
+          id="endpointInput"
+          placeholder="https://query.wikidata.org/sparql"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <div id="endpointDropdown"></div>
+      </div>
+      <button id="executeBtn" title="Execute query">&#9654;</button>
+    </div>
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script nonce="__NONCE__" src="__YASR_JS_URI__"></script>
+    <script nonce="__NONCE__">
+      const vscode = acquireVsCodeApi();
+      const endpointInput = document.getElementById('endpointInput');
+      const endpointDropdown = document.getElementById('endpointDropdown');
+      const executeBtn = document.getElementById('executeBtn');
+      const statusDiv = document.getElementById('status');
+      const resultsDiv = document.getElementById('results');
+
+      let currentQuery = '';
+      let yasrInstance = null;
+      let savedEndpoints = [];
+      let activeIdx = -1;
+      let isExecuting = false;
+
+      function setExecuting(executing) {
+        isExecuting = executing;
+        if (executing) {
+          executeBtn.classList.add('loading');
+          executeBtn.title = 'Cancel query';
+          executeBtn.innerHTML = '<span class="btn-spinner"></span>';
+        } else {
+          executeBtn.classList.remove('loading');
+          executeBtn.title = 'Execute query';
+          executeBtn.innerHTML = '&#9654;';
+        }
+      }
+
+      function openDropdown(items) {
+        endpointDropdown.innerHTML = '';
+        activeIdx = -1;
+        if (!items.length) {
+          endpointDropdown.classList.remove('open');
+          return;
+        }
+        for (let i = 0; i < items.length; i++) {
+          const url = items[i];
+          const div = document.createElement('div');
+          div.className = 'endpoint-option';
+          div.dataset.url = url;
+          div.addEventListener('mousedown', (e) => {
+            if (e.target === del) return;
+            e.preventDefault();
+            endpointInput.value = url;
+            closeDropdown();
+          });
+
+          const label = document.createElement('span');
+          label.className = 'endpoint-option-label';
+          label.textContent = url;
+          label.title = url;
+          // click handled by parent div
+
+          const del = document.createElement('button');
+          del.className = 'endpoint-delete';
+          del.textContent = '✕';
+          del.title = 'Remove from list';
+          del.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            vscode.postMessage({ type: 'deleteEndpoint', url });
+          });
+
+          div.appendChild(label);
+          div.appendChild(del);
+          endpointDropdown.appendChild(div);
+        }
+        endpointDropdown.classList.add('open');
+      }
+
+      function closeDropdown() {
+        endpointDropdown.classList.remove('open');
+        activeIdx = -1;
+      }
+
+      function setActive(idx) {
+        const opts = endpointDropdown.querySelectorAll('.endpoint-option');
+        opts.forEach((o, i) => o.classList.toggle('active', i === idx));
+        if (opts[idx]) opts[idx].scrollIntoView({ block: 'nearest' });
+      }
+
+      endpointInput.addEventListener('input', () => {
+        const val = endpointInput.value.trim().toLowerCase();
+        const filtered = val ? savedEndpoints.filter((u) => u.toLowerCase().includes(val)) : savedEndpoints;
+        openDropdown(filtered);
       });
-    }
 
-    function showStatus(msg, type) {
-      statusDiv.className = 'status ' + type;
-      statusDiv.textContent = msg;
-    }
+      endpointInput.addEventListener('focus', () => {
+        const val = endpointInput.value.trim().toLowerCase();
+        const filtered = val ? savedEndpoints.filter((u) => u.toLowerCase().includes(val)) : savedEndpoints;
+        if (filtered.length) openDropdown(filtered);
+      });
 
-    function clearStatus() {
-      statusDiv.className = '';
-      statusDiv.textContent = '';
-    }
-
-    window.addEventListener('message', (event) => {
-      const msg = event.data;
-      switch (msg.type) {
-        case 'update':
-          currentQuery = msg.query || '';
-          if (msg.endpoint) {
-            endpointInput.value = msg.endpoint;
-          }
+      executeBtn.addEventListener('click', () => {
+        if (isExecuting) {
+          vscode.postMessage({ type: 'cancelQuery' });
+          setExecuting(false);
           clearStatus();
-          if (msg.autoExecute) {
-            execute();
+        } else {
+          execute();
+        }
+      });
+
+      endpointInput.addEventListener('keydown', (e) => {
+        const opts = endpointDropdown.querySelectorAll('.endpoint-option');
+        if (endpointDropdown.classList.contains('open') && opts.length) {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIdx = Math.min(activeIdx + 1, opts.length - 1);
+            setActive(activeIdx);
+            return;
           }
-          break;
+          if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIdx = Math.max(activeIdx - 1, 0);
+            setActive(activeIdx);
+            return;
+          }
+          if (e.key === 'Enter' && activeIdx >= 0) {
+            const labelEl = opts[activeIdx].querySelector('.endpoint-option-label');
+            endpointInput.value = labelEl ? labelEl.textContent : opts[activeIdx].dataset.url;
+            closeDropdown();
+            return;
+          }
+          if (e.key === 'Escape') {
+            closeDropdown();
+            return;
+          }
+        }
+        if (e.key === 'Enter') {
+          execute();
+        }
+      });
 
-        case 'results':
-          executeBtn.disabled = false;
-          clearStatus();
-          displayResults(msg.data, msg.contentType, msg.queryType);
-          break;
+      document.addEventListener('click', (e) => {
+        if (!endpointInput.contains(e.target) && !endpointDropdown.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+      // Close when the webview loses focus (user clicks the VS Code editor)
+      window.addEventListener('blur', closeDropdown);
 
-        case 'error':
-          executeBtn.disabled = false;
-          showStatus(msg.message, 'error');
-          break;
+      function execute() {
+        const endpoint = endpointInput.value.trim();
+        if (!endpoint) {
+          showStatus('Please enter a SPARQL endpoint URL.', 'error');
+          return;
+        }
+        if (!currentQuery.trim()) {
+          showStatus('No query to execute. Open a .rq or .sparql file.', 'error');
+          return;
+        }
+        executeBtn.disabled = false;
+        // showStatus("Executing query...", "info");
+        setExecuting(true);
+        vscode.postMessage({
+          type: 'executeQuery',
+          query: currentQuery,
+          endpoint: endpoint,
+        });
       }
-    });
 
-    function displayResults(data, contentType, queryType) {
-      resultsDiv.innerHTML = '';
+      function showStatus(msg, type) {
+        statusDiv.className = 'status ' + type;
+        statusDiv.textContent = msg;
+      }
 
-      if (contentType.includes('sparql-results+json')) {
-        // SELECT / ASK results — use YASR table
-        try {
-          yasrInstance = new Yasr(resultsDiv, {
-            pluginOrder: ['table', 'response'],
-            defaultPlugin: 'table',
-          });
-          yasrInstance.setResponse({
-            data: data,
-            contentType: 'application/sparql-results+json',
-            status: 200,
-            executionTime: 0,
-          });
-        } catch (e) {
+      function clearStatus() {
+        statusDiv.className = '';
+        statusDiv.textContent = '';
+      }
+
+      window.addEventListener('message', (event) => {
+        const msg = event.data;
+        switch (msg.type) {
+          case 'update':
+            currentQuery = msg.query || '';
+            if (msg.endpoint) {
+              endpointInput.value = msg.endpoint;
+            }
+            clearStatus();
+            if (msg.autoExecute) {
+              execute();
+            }
+            break;
+
+          case 'updateQuery':
+            currentQuery = msg.query || '';
+            break;
+
+          case 'results':
+            setExecuting(false);
+            clearStatus();
+            displayResults(msg.data, msg.contentType, msg.queryType);
+            break;
+
+          case 'error':
+            setExecuting(false);
+            showStatus(msg.message, 'error');
+            break;
+
+          case 'cancelled':
+            setExecuting(false);
+            clearStatus();
+            break;
+
+          case 'setEndpoints': {
+            savedEndpoints = msg.endpoints || [];
+            break;
+          }
+        }
+      });
+
+      function displayResults(data, contentType, queryType) {
+        resultsDiv.innerHTML = '';
+
+        if (contentType.includes('sparql-results+json')) {
+          // SELECT / ASK results — use YASR table
+          try {
+            yasrInstance = new Yasr(resultsDiv, {
+              pluginOrder: ['table', 'response'],
+              defaultPlugin: 'table',
+            });
+            yasrInstance.setResponse({
+              data: data,
+              contentType: 'application/sparql-results+json',
+              status: 200,
+              executionTime: 0,
+            });
+          } catch (e) {
+            resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
+          }
+        } else if (
+          contentType.includes('turtle') ||
+          contentType.includes('n-triples') ||
+          contentType.includes('ld+json') ||
+          contentType.includes('rdf+xml')
+        ) {
+          // CONSTRUCT / DESCRIBE results — show via YASR response plugin
+          try {
+            yasrInstance = new Yasr(resultsDiv, {
+              pluginOrder: ['response'],
+              defaultPlugin: 'response',
+            });
+            yasrInstance.setResponse({
+              data: data,
+              contentType: contentType,
+              status: 200,
+              executionTime: 0,
+            });
+          } catch (e) {
+            resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
+          }
+        } else {
           resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
         }
-      } else if (
-        contentType.includes('turtle') ||
-        contentType.includes('n-triples') ||
-        contentType.includes('ld+json') ||
-        contentType.includes('rdf+xml')
-      ) {
-        // CONSTRUCT / DESCRIBE results — show via YASR response plugin
-        try {
-          yasrInstance = new Yasr(resultsDiv, {
-            pluginOrder: ['response'],
-            defaultPlugin: 'response',
-          });
-          yasrInstance.setResponse({
-            data: data,
-            contentType: contentType,
-            status: 200,
-            executionTime: 0,
-          });
-        } catch (e) {
-          resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
-        }
-      } else {
-        resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
       }
-    }
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-  </script>
-</body>
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    </script>
+  </body>
 </html>

@@ -16,6 +16,18 @@ Run tests:
 npm test
 ```
 
+Format and lint:
+
+```sh
+npm run fmt
+```
+
+Upgrade dependencies:
+
+```sh
+npm run upgrade
+```
+
 ## 🎛️ Extension Settings
 
 Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
@@ -26,24 +38,24 @@ Include if your extension adds any VS Code settings through the `contributes.con
 
 Extension guidelines:
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
+- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 ## 🏷️ Release
 
-Install the packaging tools once:
+Bump the version in `package.json`: `fix` | `minor` | `major`
 
 ```sh
-npm install -g @vscode/vsce ovsx
+npm version fix
 ```
 
-Bump the version in `package.json`, then build and publish:
+Then build and publish:
 
 ```sh
 # Package the extension
 npm run package
-npm run publish:vsce
+npm run package:vsce
 ```
 
 Or use the combined npm scripts:
@@ -57,3 +69,23 @@ npm run publish:all     # both
 > [!WARNING]
 >
 > Tokens: get a VS Code Marketplace PAT from [Azure DevOps](https://dev.azure.com), and an Open VSX token from [open-vsx.org/user-settings/tokens](https://open-vsx.org/user-settings/tokens).
+
+## 📝 Notes
+
+Icons
+
+Run tests:
+
+- Install the [Extension Test Runner](https://marketplace.visualstudio.com/items?itemName=ms-vscode.extension-test-runner)
+- Run the "watch" task via the **Tasks: Run Task** command. Make sure this is running, or tests might not be discovered.
+- Open the Testing view from the activity bar and click the Run Test" button, or use the hotkey `Ctrl/Cmd + ; A`
+- See the output of the test result in the Test Results view.
+- Make changes to `src/test/extension.test.ts` or create new test files inside the `test` folder.
+  - The provided test runner will only consider files matching the name pattern `**.test.ts`.
+  - You can create folders inside the `test` folder to structure your tests any way you want.
+
+Go further:
+
+- Reduce the extension size and improve the startup time by [bundling your extension](https://code.visualstudio.com/api/working-with-extensions/bundling-extension).
+- [Publish your extension](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) on the VS Code extension marketplace.
+- Automate builds by setting up [Continuous Integration](https://code.visualstudio.com/api/working-with-extensions/continuous-integration).
