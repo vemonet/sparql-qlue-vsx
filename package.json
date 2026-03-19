@@ -9,8 +9,9 @@
     "type": "git",
     "url": "https://github.com/vemonet/sparql-qlue-vsx"
   },
-  "engines": {
-    "vscode": "^1.110.0"
+  "author": {
+    "name": "Vincent Emonet",
+    "email": "vincent.emonet@gmail.com"
   },
   "categories": [
     "Programming Languages",
@@ -18,6 +19,15 @@
     "Linters",
     "Themes"
   ],
+  "keywords": [
+    "SPARQL",
+    "Language server",
+    "Qlue-ls",
+    "Query execution"
+  ],
+  "engines": {
+    "vscode": "^1.110.0"
+  },
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [
@@ -117,7 +127,12 @@
         {
           "command": "sparql-qlue.executeQuery",
           "when": "resourceLangId == sparql",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "sparql-qlue.openServerSettings",
+          "when": "resourceLangId == sparql",
+          "group": "navigation@2"
         }
       ],
       "editor/context": [

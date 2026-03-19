@@ -8,6 +8,8 @@ A VisualStudio Code extension for working with SPARQL query files (`.rq`, `.spar
 
 ![Screenshot extension](screenshot.png)
 
+https://raw.githubusercontent.com/vemonet/sparql-qlue-vsx/refs/heads/main/screenshot.png
+
 ## Language Server (qlue-ls)
 
 - **Context-aware autocomplete**: suggests subjects, predicates, and objects based on your SPARQL endpoint and the current query context
@@ -26,7 +28,7 @@ A VisualStudio Code extension for working with SPARQL query files (`.rq`, `.spar
 
 Click the **⚙** gear button in the SPARQL Results panel toolbar (or run **SPARQL Qlue: Configure Language Server** from the Command Palette) to open the settings editor.
 
-Settings are grouped into three sections that mirror the qlue-ls TOML configuration:
+Settings are persisted to workspace configuration (`sparql-qlue.serverSettings`) and grouped into three sections that mirror the qlue-ls TOML configuration:
 
 ### `[format]`
 
@@ -61,8 +63,6 @@ Settings are grouped into three sections that mirror the qlue-ls TOML configurat
 | -------------- | ------- | ------------------------------------------------ |
 | `addMissing`   | `true`  | Automatically insert missing PREFIX declarations |
 | `removeUnused` | `false` | Remove PREFIX declarations not used in the query |
-
-Settings are persisted to workspace configuration (`sparql-qlue.serverSettings`) and applied to the running language server immediately.
 
 ## Extension Settings
 

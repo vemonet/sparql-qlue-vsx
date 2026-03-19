@@ -114,7 +114,6 @@ export const DEFAULT_PREFIX_MAP: Record<string, string> = {
 export const DEFAULT_COMPLETION_QUERIES: Record<string, string> = {
   subjectCompletion: `{% include "prefix_declarations" %}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX up: <http://purl.uniprot.org/core/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT ?qlue_ls_entity (SAMPLE(?label) as ?qlue_ls_label) WHERE {
   ?qlue_ls_entity rdf:type ?type ; rdfs:label ?label .
@@ -145,41 +144,23 @@ LIMIT {{ limit }} OFFSET {{ offset }}`,
 
   predicateCompletionContextSensitive: `{% include "prefix_declarations" %}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-{% if subject is not variable %}
 SELECT ?qlue_ls_entity (SAMPLE(?qlue_ls_label_or_null) AS ?qlue_ls_label) ?qlue_ls_count WHERE {
   {
-    SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?qlue_ls_count) WHERE {
-      {{ local_context }}
-    }
-    GROUP BY ?qlue_ls_entity
-  }
-  OPTIONAL { ?qlue_ls_entity rdfs:label ?qlue_ls_label_or_null }
-  BIND (COALESCE(?qlue_ls_label_or_null, ?qlue_ls_entity) AS ?label)
-  {% if search_term_uncompressed %}
-  FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
-  {% elif search_term %}
-  FILTER REGEX(STR(?label), "{{ search_term }}", "i")
-  {% endif %}
-}
-GROUP BY ?qlue_ls_entity ?qlue_ls_count
-ORDER BY DESC(?qlue_ls_count)
-{% else %}
-SELECT ?qlue_ls_entity (SAMPLE(?qlue_ls_label_or_null) AS ?qlue_ls_label) ?qlue_ls_count WHERE {
-  {% if not context %}
-  {
-    SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?qlue_ls_count) WHERE {
-      {{ local_context }}
-    }
-    GROUP BY ?qlue_ls_entity
-  }
-  {% else %}
-  {
-    SELECT ?qlue_ls_entity (COUNT(DISTINCT {{ subject }}) AS ?qlue_ls_count) WHERE {
+    SELECT ?qlue_ls_entity (
+      {% if subject is variable and context %}
+      COUNT(DISTINCT {{ subject }})
+      {% else %}
+      COUNT(?qlue_ls_entity)
+      {% endif %}
+      AS ?qlue_ls_count) WHERE {
+      {% if subject is variable and context %}
       {{ context }} {{ local_context }}
+      {% else %}
+      {{ local_context }}
+      {% endif %}
     }
     GROUP BY ?qlue_ls_entity
   }
-  {% endif %}
   OPTIONAL { ?qlue_ls_entity rdfs:label ?qlue_ls_label_or_null }
   BIND (COALESCE(?qlue_ls_label_or_null, ?qlue_ls_entity) AS ?label)
   {% if search_term_uncompressed %}
@@ -190,73 +171,47 @@ SELECT ?qlue_ls_entity (SAMPLE(?qlue_ls_label_or_null) AS ?qlue_ls_label) ?qlue_
 }
 GROUP BY ?qlue_ls_entity ?qlue_ls_count
 ORDER BY DESC(?qlue_ls_count)
-{% endif %}
 LIMIT {{ limit }} OFFSET {{ offset }}`,
 
   objectCompletionContextInsensitive: `{% include "prefix_declarations" %}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX up: <http://purl.uniprot.org/core/>
-SELECT ?qlue_ls_entity (MIN(?name) AS ?qlue_ls_label) (MIN(?alias) AS ?qlue_ls_alias) (MAX(?count) AS ?qlue_ls_count) WHERE {
+SELECT ?qlue_ls_entity (SAMPLE(?name) AS ?qlue_ls_label) ?qlue_ls_count WHERE {
   {
-    { SELECT ?qlue_ls_entity ?name ?alias ?count WHERE {
-      { SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?count) WHERE {
-        {{local_context}}
-      } GROUP BY ?qlue_ls_entity }
-      ?qlue_ls_entity rdfs:label ?name BIND(?name AS ?alias)
-      {% if search_term_uncompressed %}
-      FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
-      {% elif search_term %}
-      FILTER REGEX(STR(?alias), "^{{ search_term }}")
-      {% endif %}
-    } }
-  } UNION {
-    { SELECT ?qlue_ls_entity ?name ?alias ?count WHERE {
-      { SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?count) WHERE {
-        {{local_context}}
-      } GROUP BY ?qlue_ls_entity }
-      ?qlue_ls_entity up:scientificName ?name BIND(?name AS ?alias)
-      {% if search_term_uncompressed %}
-      FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
-      {% elif search_term %}
-      FILTER REGEX(STR(?alias), "^{{ search_term }}")
-      {% endif %}
-    } }
-  } UNION {
-    { SELECT ?qlue_ls_entity ?name ?alias ?count WHERE {
-      { SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?count) WHERE {
-        {{local_context}}
-      } GROUP BY ?qlue_ls_entity }
-      BIND(?qlue_ls_entity AS ?name) BIND(?qlue_ls_entity AS ?alias)
-      {% if search_term_uncompressed %}
-      FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
-      {% elif search_term %}
-      FILTER REGEX(STR(?alias), "^{{ search_term }}")
-      {% endif %}
-    } }
+    SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?qlue_ls_count) WHERE {
+      {{ local_context }}
+    }
+    GROUP BY ?qlue_ls_entity
   }
-} GROUP BY ?qlue_ls_entity ORDER BY DESC(?qlue_ls_count)
+  OPTIONAL { ?qlue_ls_entity rdfs:label ?label }
+  BIND(COALESCE(?label, STR(?qlue_ls_entity)) AS ?name)
+  {% if search_term_uncompressed %}
+  FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
+  {% elif search_term %}
+  FILTER REGEX(?name, "^{{ search_term }}")
+  {% endif %}
+}
+GROUP BY ?qlue_ls_entity ?qlue_ls_count
+ORDER BY DESC(?qlue_ls_count)
 LIMIT {{ limit }} OFFSET {{ offset }}`,
 
   objectCompletionContextSensitive: `{% include "prefix_declarations" %}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?qlue_ls_entity ?qlue_ls_label ?qlue_ls_count WHERE {
+SELECT ?qlue_ls_entity (SAMPLE(?name) AS ?qlue_ls_label) ?qlue_ls_count WHERE {
   {
     SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?qlue_ls_count) WHERE {
       {{ context }} {{ local_context }} .
     }
     GROUP BY ?qlue_ls_entity
   }
-  OPTIONAL {
-    ?qlue_ls_entity rdf:type [ rdfs:label ?qlue_ls_label_or_null ] .
-  }
-  OPTIONAL { ?qlue_ls_entity rdfs:label ?qlue_ls_label_or_null }
-  BIND (COALESCE(?qlue_ls_label_or_null, ?qlue_ls_entity) AS ?qlue_ls_label)
+  OPTIONAL { ?qlue_ls_entity rdfs:label ?label }
+  BIND(COALESCE(?label, STR(?qlue_ls_entity)) AS ?name)
   {% if search_term_uncompressed %}
   FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
   {% elif search_term %}
-  FILTER REGEX(STR(?qlue_ls_label), "^{{ search_term }}")
+  FILTER REGEX(?name, "^{{ search_term }}")
   {% endif %}
 }
+GROUP BY ?qlue_ls_entity ?qlue_ls_count
 ORDER BY DESC(?qlue_ls_count)
 LIMIT {{ limit }} OFFSET {{ offset }}`,
 

@@ -10,37 +10,23 @@ npm i
 
 Press `F5` in VS Code (or use **Run → Start Debugging**) to launch the extension in a new Extension Development Host window.
 
-Run tests:
+### Run tests
 
 ```sh
 npm test
 ```
 
-Format and lint:
+### Format
 
 ```sh
 npm run fmt
 ```
 
-Upgrade dependencies:
+### Upgrade dependencies
 
 ```sh
 npm run upgrade
 ```
-
-## 🎛️ Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-> [!NOTE]
->
-> TODO: support [qlue-ls config](https://github.com/IoannisNezis/Qlue-ls?tab=readme-ov-file#example-configuration)
-
-Extension guidelines:
-
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 ## 🏷️ Release
 
@@ -73,6 +59,8 @@ npm run publish:all     # both
 ## 📝 Notes
 
 Icons: https://code.visualstudio.com/api/references/icons-in-labels
+
+VSCode marketplace publisher: https://marketplace.visualstudio.com/manage/
 
 Run tests:
 
