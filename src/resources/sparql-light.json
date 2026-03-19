@@ -16,7 +16,7 @@
     {
       "name": "Prefixed names / CURIE namespace part",
       "scope": ["variable.prefix.sparql", "variable.reference.sparql"],
-      "settings": { "foreground": "#cb4b16", "fontStyle": "italic" }
+      "settings": { "foreground": "#cb4b16" }
     },
     {
       "name": "SPARQL variables (?x, ?name…)",

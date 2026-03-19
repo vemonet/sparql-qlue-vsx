@@ -138,6 +138,274 @@
         outline-offset: -1px;
       }
 
+      /* Endpoints section */
+      .endpoint-item {
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+      .endpoint-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        cursor: pointer;
+        background: var(--input-bg);
+        user-select: none;
+        gap: 8px;
+      }
+      .endpoint-header:hover {
+        background: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.05));
+      }
+      .endpoint-url {
+        font-family: var(--vscode-editor-font-family, monospace);
+        font-size: 0.88em;
+        word-break: break-all;
+        flex: 1;
+      }
+      .endpoint-chevron {
+        font-size: 0.75em;
+        color: var(--desc-fg);
+        transition: transform 0.15s;
+        flex-shrink: 0;
+      }
+      .endpoint-chevron.open {
+        transform: rotate(90deg);
+      }
+      .endpoint-del {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--desc-fg);
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .endpoint-del:hover {
+        color: var(--vscode-errorForeground, #f48771);
+        background: rgba(255, 255, 255, 0.07);
+      }
+      .endpoint-body {
+        display: none;
+        padding: 12px;
+        border-top: 1px solid var(--border);
+        gap: 12px;
+        flex-direction: column;
+      }
+      .endpoint-body.open {
+        display: flex;
+      }
+      .endpoint-subsection-title {
+        font-size: 0.78em;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--desc-fg);
+        margin: 4px 0 6px;
+      }
+      .endpoint-subsection-title.collapsible {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .endpoint-subsection-title.collapsible:hover {
+        color: var(--fg);
+      }
+      .subsection-chevron {
+        font-size: 0.75em;
+        transition: transform 0.15s;
+      }
+      .subsection-chevron.open {
+        transform: rotate(90deg);
+      }
+      .subsection-body {
+        display: none;
+      }
+      .subsection-body.open {
+        display: block;
+      }
+      /* Prefix map table */
+      .prefix-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--vscode-editor-font-family, monospace);
+        font-size: 0.85em;
+      }
+      .prefix-table th {
+        text-align: left;
+        padding: 4px 8px;
+        border-bottom: 1px solid var(--border);
+        color: var(--desc-fg);
+        font-weight: 600;
+      }
+      .prefix-table td {
+        padding: 2px 4px;
+      }
+      .prefix-table input[type='text'] {
+        width: 100%;
+        padding: 3px 6px;
+        background: var(--input-bg);
+        color: var(--input-fg);
+        border: 1px solid transparent;
+        border-radius: 3px;
+        font-family: inherit;
+        font-size: inherit;
+      }
+      .prefix-table input[type='text']:focus {
+        outline: 1px solid var(--button-bg);
+        outline-offset: -1px;
+        border-color: transparent;
+      }
+      .prefix-table tr:hover td input[type='text'] {
+        border-color: var(--input-border);
+      }
+      .prefix-row-del {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--desc-fg);
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        line-height: 1;
+      }
+      .prefix-row-del:hover {
+        color: var(--vscode-errorForeground, #f48771);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .add-prefix-row {
+        background: none;
+        border: 1px dashed var(--input-border);
+        border-radius: 3px;
+        color: var(--desc-fg);
+        cursor: pointer;
+        padding: 3px 10px;
+        font-size: 0.82em;
+        margin-top: 4px;
+      }
+      .add-prefix-row:hover {
+        color: var(--fg);
+        border-color: var(--fg);
+      }
+      /* Query fields with SPARQL syntax highlighting */
+      .query-field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-top: 10px;
+      }
+      .query-field > label {
+        font-family: var(--vscode-editor-font-family, monospace);
+        font-size: 0.82em;
+        color: var(--desc-fg);
+      }
+      /* Overlay editor: pre behind transparent textarea */
+      .code-editor-wrap {
+        position: relative;
+        border: 1px solid var(--input-border);
+        border-radius: 3px;
+        background: var(--input-bg);
+      }
+      .code-editor-wrap:focus-within {
+        outline: 1px solid var(--button-bg);
+        outline-offset: -1px;
+      }
+      .code-editor-wrap .code-highlight,
+      .code-editor-wrap .code-textarea {
+        margin: 0;
+        padding: 6px 8px;
+        font-family: var(--vscode-editor-font-family, 'Consolas', 'Monaco', monospace);
+        font-size: 0.82em;
+        line-height: 1.5;
+        tab-size: 2;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        box-sizing: border-box;
+        width: 100%;
+      }
+      .code-editor-wrap .code-highlight {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        color: var(--fg);
+        background: transparent;
+        border: none;
+      }
+      .code-editor-wrap .code-textarea {
+        position: relative;
+        display: block;
+        min-height: 240px;
+        background: transparent;
+        color: transparent;
+        caret-color: var(--input-fg);
+        border: none;
+        outline: none;
+        resize: vertical;
+        z-index: 1;
+      }
+      /* SPARQL token colors */
+      .hl-kw {
+        color: var(--vscode-symbolIcon-keywordForeground, #569cd6);
+        font-weight: bold;
+      }
+      .hl-var {
+        color: var(--vscode-symbolIcon-variableForeground, #9cdcfe);
+      }
+      .hl-str {
+        color: var(--vscode-symbolIcon-stringForeground, #ce9178);
+      }
+      .hl-iri {
+        color: var(--vscode-symbolIcon-namespaceForeground, #4ec9b0);
+      }
+      .hl-cmt {
+        color: var(--vscode-symbolIcon-colorForeground, #6a9955);
+        font-style: italic;
+      }
+      .hl-pfx {
+        color: var(--vscode-symbolIcon-namespaceForeground, #4ec9b0);
+      }
+      .hl-num {
+        color: var(--vscode-symbolIcon-numberForeground, #b5cea8);
+      }
+      .hl-tpl {
+        color: #ffd700;
+        font-style: italic;
+      }
+      .no-endpoints {
+        color: var(--desc-fg);
+        font-size: 0.88em;
+        padding: 10px 12px;
+        font-style: italic;
+      }
+
+      /* Floating save button */
+      .float-save-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--button-bg);
+        color: var(--button-fg);
+        border: none;
+        border-radius: 6px;
+        padding: 10px 22px;
+        font-size: 0.9em;
+        font-weight: 400;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        z-index: 100;
+        display: none;
+      }
+      .float-save-btn:hover {
+        background: var(--button-hover);
+      }
+
       /* Acknowledgements */
       .ack {
         font-size: 0.85em;
@@ -155,7 +423,12 @@
     </style>
   </head>
   <body>
+    <button id="float-save-btn" class="float-save-btn">💾 Save changes</button>
+
     <h1>SPARQL Qlue Language Server Settings</h1>
+
+    <h2>Endpoint backends</h2>
+    <div id="endpoints-section"></div>
 
     <h2>Format</h2>
     <div class="section" id="fmt-section"></div>
@@ -179,6 +452,7 @@
     <script nonce="__NONCE__">
       const vscode = acquireVsCodeApi();
       const initial = __SETTINGS__;
+      const initialEndpointBackends = __ENDPOINT_BACKENDS__;
 
       const FIELDS = {
         fmt: [
@@ -273,6 +547,277 @@
         }
       }
 
+      // ── SPARQL syntax highlighter ──────────────────────────────────────
+
+      const SPARQL_KW =
+        /\b(?:PREFIX|BASE|SELECT|CONSTRUCT|DESCRIBE|ASK|WHERE|FILTER|OPTIONAL|UNION|GRAPH|BIND|VALUES|LIMIT|OFFSET|ORDER|GROUP|HAVING|DISTINCT|REDUCED|FROM|NAMED|AS|NOT|IN|EXISTS|MINUS|SERVICE|SILENT|ALL|UNDEF|BY|ASC|DESC|COALESCE|IF|BOUND|IRI|URI|BNODE|RAND|ABS|CEIL|FLOOR|ROUND|CONCAT|STRLEN|UCASE|LCASE|ENCODE_FOR_URI|CONTAINS|STRSTARTS|STRENDS|STRBEFORE|STRAFTER|YEAR|MONTH|DAY|HOURS|MINUTES|SECONDS|TIMEZONE|TZ|NOW|UUID|STRUUID|MD5|SHA1|SHA256|SHA384|SHA512|ISIRI|ISURI|ISBLANK|ISLITERAL|ISNUMERIC|LANGMATCHES|LANG|DATATYPE|REGEX|SUBSTR|REPLACE|STR|SAMPLE|COUNT|SUM|MIN|MAX|AVG|GROUP_CONCAT|SEPARATOR)\b/iy;
+
+      function highlightSparql(text) {
+        // Rules checked left-to-right at each position using the sticky (y) flag
+        const rules = [
+          ['cmt', /#[^\n]*/y],
+          ['str', /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/y],
+          ['iri', /<[^>\s]*>/y],
+          ['tpl', /\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}/y],
+          ['kw', SPARQL_KW],
+          ['var', /[?$]\w+/y],
+          ['pfx', /\w[\w-]*(?=:(?:[^:\/]))/y],
+          ['num', /\b\d+(?:\.\d*)?\b/y],
+        ];
+        let out = '';
+        let i = 0;
+        const n = text.length;
+        while (i < n) {
+          let consumed = false;
+          for (const [cls, re] of rules) {
+            re.lastIndex = i;
+            const m = re.exec(text);
+            if (m && m.index === i) {
+              out += `<span class="hl-${cls}">${escHtml(m[0])}</span>`;
+              i += m[0].length;
+              consumed = true;
+              break;
+            }
+          }
+          if (!consumed) {
+            out += escHtml(text[i]);
+            i++;
+          }
+        }
+        // Trailing newline hack: ensure the pre tracks the last blank line
+        return out + '\u200b';
+      }
+
+      function makeSparqlEditor(initialValue, onChange) {
+        const wrap = document.createElement('div');
+        wrap.className = 'code-editor-wrap';
+        const hl = document.createElement('pre');
+        hl.className = 'code-highlight';
+        hl.setAttribute('aria-hidden', 'true');
+        const ta = document.createElement('textarea');
+        ta.className = 'code-textarea';
+        ta.value = initialValue;
+        ta.spellcheck = false;
+        ta.autocomplete = 'off';
+        wrap.appendChild(hl);
+        wrap.appendChild(ta);
+        const refresh = () => {
+          hl.innerHTML = highlightSparql(ta.value);
+        };
+        refresh();
+        ta.addEventListener('input', () => {
+          refresh();
+          onChange(ta.value);
+        });
+        ta.addEventListener('scroll', () => {
+          hl.scrollTop = ta.scrollTop;
+          hl.scrollLeft = ta.scrollLeft;
+        });
+        // Expose a setter for programmatic updates
+        wrap.setValue = (v) => {
+          ta.value = v;
+          refresh();
+        };
+        wrap.getValue = () => ta.value;
+        return wrap;
+      }
+
+      // ── Endpoint backends ──────────────────────────────────────────────
+
+      const QUERY_KEYS = [
+        'subjectCompletion',
+        'predicateCompletionContextInsensitive',
+        'predicateCompletionContextSensitive',
+        'objectCompletionContextInsensitive',
+        'objectCompletionContextSensitive',
+        'hover',
+      ];
+
+      // Live in-memory copy so edits don't fight with DOM reads
+      const endpointBackends = JSON.parse(JSON.stringify(initialEndpointBackends || {}));
+
+      const dirtyEndpoints = new Set();
+      const floatSaveBtn = document.getElementById('float-save-btn');
+
+      function markDirty(endpointUrl) {
+        dirtyEndpoints.add(endpointUrl);
+        floatSaveBtn.style.display = 'block';
+      }
+
+      function saveEndpointBackend(endpointUrl) {
+        vscode.postMessage({
+          type: 'saveEndpointBackend',
+          endpointUrl,
+          config: endpointBackends[endpointUrl],
+        });
+      }
+
+      floatSaveBtn.addEventListener('click', () => {
+        for (const url of dirtyEndpoints) saveEndpointBackend(url);
+        dirtyEndpoints.clear();
+        floatSaveBtn.style.display = 'none';
+      });
+
+      function readPrefixMap(tbody) {
+        const map = {};
+        if (!tbody) return map;
+        for (const row of tbody.querySelectorAll('tr[data-prefix-row]')) {
+          const prefix = row.querySelector('.pfx-key').value.trim();
+          const ns = row.querySelector('.pfx-ns').value.trim();
+          if (prefix) map[prefix] = ns;
+        }
+        return map;
+      }
+
+      function addPrefixRow(tbody, endpointUrl, prefix, ns) {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-prefix-row', '1');
+        tr.innerHTML = `
+          <td><input type="text" class="pfx-key" value="${escHtml(prefix)}" placeholder="prefix"></td>
+          <td><input type="text" class="pfx-ns" value="${escHtml(ns)}" placeholder="http://..."></td>
+          <td><button class="prefix-row-del" title="Remove">✕</button></td>`;
+        tr.querySelector('.pfx-key').addEventListener('input', () => {
+          endpointBackends[endpointUrl].prefixMap = readPrefixMap(tbody);
+          markDirty(endpointUrl);
+        });
+        tr.querySelector('.pfx-ns').addEventListener('input', () => {
+          endpointBackends[endpointUrl].prefixMap = readPrefixMap(tbody);
+          markDirty(endpointUrl);
+        });
+        tr.querySelector('.prefix-row-del').addEventListener('click', () => {
+          tr.remove();
+          endpointBackends[endpointUrl].prefixMap = readPrefixMap(tbody);
+          saveEndpointBackend(endpointUrl);
+        });
+        tbody.appendChild(tr);
+      }
+
+      function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function renderEndpoints(backends) {
+        const container = document.getElementById('endpoints-section');
+        container.innerHTML = '';
+        const urls = Object.keys(backends);
+        if (urls.length === 0) {
+          const p = document.createElement('p');
+          p.className = 'no-endpoints';
+          p.textContent = 'No endpoints registered yet. Open a SPARQL file or execute a query to register an endpoint.';
+          container.appendChild(p);
+          return;
+        }
+        for (const url of urls) {
+          const cfg = backends[url];
+
+          // Build structure via DOM (avoids any id/selector escaping issues with URLs)
+          const item = document.createElement('div');
+          item.className = 'endpoint-item';
+
+          const header = document.createElement('div');
+          header.className = 'endpoint-header';
+
+          const urlSpan = document.createElement('span');
+          urlSpan.className = 'endpoint-url';
+          urlSpan.textContent = url;
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'endpoint-del';
+          delBtn.title = 'Delete endpoint backend';
+          delBtn.textContent = '✕';
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            delete endpointBackends[url];
+            vscode.postMessage({ type: 'deleteEndpointBackend', endpointUrl: url });
+            item.remove();
+            if (Object.keys(endpointBackends).length === 0) renderEndpoints(endpointBackends);
+          });
+
+          const chevron = document.createElement('span');
+          chevron.className = 'endpoint-chevron';
+          chevron.textContent = '▶';
+
+          header.appendChild(urlSpan);
+          header.appendChild(delBtn);
+          header.appendChild(chevron);
+
+          const body = document.createElement('div');
+          body.className = 'endpoint-body';
+
+          // Prefix map sub-section
+          const pfxSection = document.createElement('div');
+          const pfxTitle = document.createElement('div');
+          pfxTitle.className = 'endpoint-subsection-title collapsible';
+          const pfxChevron = document.createElement('span');
+          pfxChevron.className = 'subsection-chevron';
+          pfxChevron.textContent = '▶';
+          pfxTitle.appendChild(pfxChevron);
+          pfxTitle.appendChild(document.createTextNode('Prefix Map'));
+          pfxSection.appendChild(pfxTitle);
+          const pfxBody = document.createElement('div');
+          pfxBody.className = 'subsection-body';
+          const table = document.createElement('table');
+          table.className = 'prefix-table';
+          table.innerHTML = '<thead><tr><th>Prefix</th><th>Namespace</th><th></th></tr></thead>';
+          const tbody = document.createElement('tbody');
+          table.appendChild(tbody);
+          const addBtn = document.createElement('button');
+          addBtn.className = 'add-prefix-row';
+          addBtn.textContent = '+ Add prefix';
+          pfxBody.appendChild(table);
+          pfxBody.appendChild(addBtn);
+          pfxSection.appendChild(pfxBody);
+          pfxTitle.addEventListener('click', () => {
+            pfxBody.classList.toggle('open');
+            pfxChevron.classList.toggle('open');
+          });
+
+          // Queries sub-section
+          const qSection = document.createElement('div');
+          qSection.innerHTML = '<div class="endpoint-subsection-title">Completion &amp; Hover Queries</div>';
+          const queriesContainer = document.createElement('div');
+          qSection.appendChild(queriesContainer);
+
+          body.appendChild(pfxSection);
+          body.appendChild(qSection);
+          item.appendChild(header);
+          item.appendChild(body);
+          container.appendChild(item);
+
+          // Toggle open/close
+          header.addEventListener('click', () => {
+            body.classList.toggle('open');
+            chevron.classList.toggle('open');
+          });
+
+          // Populate prefix map
+          for (const [prefix, ns] of Object.entries(cfg.prefixMap || {})) {
+            addPrefixRow(tbody, url, prefix, ns);
+          }
+          addBtn.addEventListener('click', () => {
+            addPrefixRow(tbody, url, '', '');
+          });
+
+          // Populate queries with SPARQL syntax highlighting
+          for (const key of QUERY_KEYS) {
+            const val = (cfg.queries || {})[key] || '';
+            const field = document.createElement('div');
+            field.className = 'query-field';
+            const label = document.createElement('label');
+            label.textContent = key;
+            const editor = makeSparqlEditor(val, (newVal) => {
+              endpointBackends[url].queries[key] = newVal;
+              markDirty(url);
+            });
+            field.appendChild(label);
+            field.appendChild(editor);
+            queriesContainer.appendChild(field);
+          }
+        }
+      }
+
+      renderEndpoints(endpointBackends);
+
       renderSection('fmt');
       renderSection('cmp');
       renderSection('pfx');
@@ -328,7 +873,13 @@
       // Accept settings pushed from the extension when the panel is revealed
       window.addEventListener('message', (event) => {
         const msg = event.data;
-        if (msg.type === 'set' && msg.settings) applySettings(msg.settings);
+        if (msg.type === 'set') {
+          if (msg.settings) applySettings(msg.settings);
+          if (msg.endpointBackends) {
+            Object.assign(endpointBackends, msg.endpointBackends);
+            renderEndpoints(endpointBackends);
+          }
+        }
       });
     </script>
   </body>

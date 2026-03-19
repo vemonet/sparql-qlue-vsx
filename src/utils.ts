@@ -53,3 +53,34 @@ export function getNonce(): string {
   }
   return result;
 }
+
+/** Fetch prefixes declared using SHACL vocabulary from a SPARQL endpoint. */
+export async function fetchEndpointPrefixes(endpointUrl: string): Promise<Record<string, string>> {
+  const query = `PREFIX sh: <http://www.w3.org/ns/shacl#>
+SELECT DISTINCT ?prefix ?namespace WHERE {
+  [] sh:namespace ?namespace ; sh:prefix ?prefix .
+} ORDER BY ?prefix`;
+  try {
+    const url = new URL(endpointUrl);
+    url.searchParams.set('query', query);
+    const response = await fetch(url.toString(), {
+      headers: { Accept: 'application/sparql-results+json' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) {
+      return {};
+    }
+    const data = (await response.json()) as { results?: { bindings?: Array<Record<string, { value: string }>> } };
+    const prefixes: Record<string, string> = {};
+    for (const binding of data.results?.bindings ?? []) {
+      const prefix = binding['prefix']?.value;
+      const ns = binding['namespace']?.value;
+      if (prefix && ns) {
+        prefixes[prefix] = ns;
+      }
+    }
+    return prefixes;
+  } catch {
+    return {};
+  }
+}

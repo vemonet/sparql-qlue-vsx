@@ -72,7 +72,7 @@ npm run publish:all     # both
 
 ## 📝 Notes
 
-Icons
+Icons: https://code.visualstudio.com/api/references/icons-in-labels
 
 Run tests:
 

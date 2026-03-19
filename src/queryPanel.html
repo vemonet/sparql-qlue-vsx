@@ -271,7 +271,7 @@
   </head>
   <body>
     <div class="controls">
-      <label for="endpointInput">Endpoint:</label>
+      <label id="endpointLabel" for="endpointInput">Endpoint:</label>
       <div class="endpoint-wrap">
         <input
           type="text"
@@ -495,6 +495,12 @@
 
           case 'setEndpoints': {
             savedEndpoints = msg.endpoints || [];
+            break;
+          }
+
+          case 'setBackend': {
+            const lbl = document.getElementById('endpointLabel');
+            if (lbl) lbl.title = msg.url ? `Active backend: ${msg.url}` : '';
             break;
           }
         }

@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getNonce } from './utils';
 import type { LanguageClient } from 'vscode-languageclient/node';
+import type { BackendConfig } from './backendConf';
 
 export class SettingsPanel {
   public static currentPanel: vscode.WebviewPanel | undefined;
@@ -11,11 +12,13 @@ export class SettingsPanel {
     context: vscode.ExtensionContext,
     getClient: () => LanguageClient | undefined,
     settings: any,
+    endpointBackends: Record<string, BackendConfig> = {},
+    onSaveEndpointBackend?: (endpointUrl: string, config: BackendConfig) => Promise<void>,
   ) {
     const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
     if (SettingsPanel.currentPanel) {
       SettingsPanel.currentPanel.reveal(column);
-      SettingsPanel.currentPanel.webview.postMessage({ type: 'set', settings });
+      SettingsPanel.currentPanel.webview.postMessage({ type: 'set', settings, endpointBackends });
       return;
     }
     const panel = vscode.window.createWebviewPanel(
@@ -29,7 +32,12 @@ export class SettingsPanel {
       },
     );
     SettingsPanel.currentPanel = panel;
-    panel.webview.html = SettingsPanel.getHtmlForWebview(panel.webview, context.extensionPath, settings);
+    panel.webview.html = SettingsPanel.getHtmlForWebview(
+      panel.webview,
+      context.extensionPath,
+      settings,
+      endpointBackends,
+    );
     panel.webview.onDidReceiveMessage(async (message) => {
       if (message.type === 'save') {
         const newSettings = message.settings;
@@ -40,13 +48,20 @@ export class SettingsPanel {
         if (client) {
           try {
             await client.sendNotification('qlueLs/changeSettings', newSettings);
-            // vscode.window.showInformationMessage("SPARQL Qlue: Server settings updated");
           } catch (err) {
             vscode.window.showErrorMessage(`SPARQL Qlue: Failed to send settings to language server: ${String(err)}`);
           }
         } else {
           vscode.window.showInformationMessage('SPARQL Qlue: Settings saved (language server not connected)');
         }
+      } else if (message.type === 'saveEndpointBackend') {
+        if (onSaveEndpointBackend) {
+          await onSaveEndpointBackend(message.endpointUrl, message.config as BackendConfig);
+        }
+      } else if (message.type === 'deleteEndpointBackend') {
+        const backends = context.globalState.get<Record<string, BackendConfig>>('sparql-qlue.endpointBackends') ?? {};
+        delete backends[message.endpointUrl as string];
+        await context.globalState.update('sparql-qlue.endpointBackends', backends);
       }
     });
     panel.onDidDispose(() => {
@@ -54,18 +69,22 @@ export class SettingsPanel {
     });
   }
 
-  private static getHtmlForWebview(webview: vscode.Webview, extensionPath: string, settings: any): string {
+  private static getHtmlForWebview(
+    webview: vscode.Webview,
+    extensionPath: string,
+    settings: any,
+    endpointBackends: Record<string, BackendConfig>,
+  ): string {
     const nonce = getNonce();
     const htmlPath = path.join(extensionPath, 'src', 'settingsPanel.html');
     const settingsJson = JSON.stringify(settings ?? {});
-    return (
-      fs
-        .readFileSync(htmlPath, 'utf8')
-        .replace('__CSP_SOURCE__', webview.cspSource)
-        .replaceAll('__NONCE__', nonce)
-        // Use a replacer function so special $ characters in JSON don't corrupt output
-        .replace('__SETTINGS__', () => settingsJson)
-    );
+    const endpointBackendsJson = JSON.stringify(endpointBackends ?? {});
+    return fs
+      .readFileSync(htmlPath, 'utf8')
+      .replace('__CSP_SOURCE__', webview.cspSource)
+      .replaceAll('__NONCE__', nonce)
+      .replace('__SETTINGS__', () => settingsJson)
+      .replace('__ENDPOINT_BACKENDS__', () => endpointBackendsJson);
   }
 }
 

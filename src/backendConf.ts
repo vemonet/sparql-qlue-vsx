@@ -1,3 +1,15 @@
+export interface BackendConfig {
+  prefixMap: Record<string, string>;
+  queries: Record<string, string>;
+}
+
+export function defaultBackendConfig(): BackendConfig {
+  return {
+    prefixMap: { ...DEFAULT_PREFIX_MAP },
+    queries: { ...DEFAULT_COMPLETION_QUERIES },
+  };
+}
+
 export const DEFAULT_PREFIX_MAP: Record<string, string> = {
   annotation: 'http://purl.uniprot.org/annotation/',
   bibo: 'http://purl.org/ontology/bibo/',

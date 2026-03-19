@@ -264,6 +264,10 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
       .replaceAll('__YASR_JS_URI__', yasrJsUri.toString());
   }
 
+  setActiveBackendUrl(url: string): void {
+    this.view?.webview.postMessage({ type: 'setBackend', url });
+  }
+
   dispose() {
     this.view = undefined;
   }
