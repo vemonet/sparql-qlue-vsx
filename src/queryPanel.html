@@ -42,17 +42,6 @@
         font-weight: 600;
         white-space: nowrap;
       }
-      #endpointInput {
-        flex: 1;
-        min-width: 200px;
-        padding: 6px 10px;
-        background: var(--input-bg);
-        color: var(--input-fg);
-        border: 1px solid var(--input-border);
-        border-radius: 4px;
-        font-size: inherit;
-        font-family: inherit;
-      }
       .endpoint-wrap {
         flex: 1;
         min-width: 200px;
@@ -60,6 +49,13 @@
       }
       #endpointInput {
         width: 100%;
+        padding: 6px 10px;
+        background: var(--input-bg);
+        color: var(--input-fg);
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        font-size: inherit;
+        font-family: inherit;
       }
       #endpointDropdown {
         display: none;
@@ -201,26 +197,14 @@
       .yasr {
         background: transparent !important;
       }
-      .yasr .dataTables_wrapper {
-        color: var(--fg) !important;
-      }
-      .yasr table.dataTable {
-        color: var(--fg) !important;
-      }
-      .yasr table.dataTable thead th {
-        color: var(--fg) !important;
-      }
-      .yasr .dataTables_info {
-        color: var(--fg) !important;
-      }
-      .yasr .dataTables_length {
-        color: var(--fg) !important;
-      }
+      .yasr .dataTables_wrapper,
+      .yasr table.dataTable,
+      .yasr table.dataTable thead th,
+      .yasr .dataTables_info,
+      .yasr .dataTables_length,
       .yasr .dataTables_filter {
         color: var(--fg) !important;
       }
-      /* Pagination buttons */
-      /* .yasr .dt-paging-button.disabled { color: var(--fg) !important; } */
       .yasr .dt-paging-button.disabled {
         opacity: 0.4;
       }
@@ -242,12 +226,6 @@
         color: var(--vscode-editorLineNumber-foreground, var(--fg)) !important;
       }
       /* Plugin tab bar */
-      /* .yasr .yasr_header .yasr_btn,
-      .yasr .yasr_header button {
-        background: transparent !important;
-        color: var(--fg) !important;
-        border-color: var(--input-border) !important;
-      } */
       .yasr .yasr_header .yasr_btn:hover,
       .yasr .yasr_header button:hover {
         background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.15)) !important;

@@ -1,3 +1,53 @@
+import * as vscode from 'vscode';
+
+// ── Extension state ──────────────────────────────────────────────────────────
+
+/**
+ * Typed accessor for all persisted extension state.
+ * Centralises key strings, types, and defaults so call-sites stay clean.
+ */
+export class ExtensionState {
+  constructor(private readonly ctx: vscode.ExtensionContext) {}
+
+  // ── Global state ────────────────────────────────────────────────────────────
+
+  getBackends(): Record<string, BackendConfig> {
+    return this.ctx.globalState.get<Record<string, BackendConfig>>('sparql-qlue.endpointBackends') ?? {};
+  }
+
+  async setBackends(backends: Record<string, BackendConfig>): Promise<void> {
+    await this.ctx.globalState.update('sparql-qlue.endpointBackends', backends);
+  }
+
+  getSettings(): Record<string, unknown> {
+    return this.ctx.globalState.get<Record<string, unknown>>('sparql-qlue.serverSettings') ?? {};
+  }
+
+  async setSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.ctx.globalState.update('sparql-qlue.serverSettings', settings);
+  }
+
+  getSavedEndpoints(): string[] {
+    return this.ctx.globalState.get<string[]>('sparql-qlue.savedEndpoints') ?? [];
+  }
+
+  async setSavedEndpoints(endpoints: string[]): Promise<void> {
+    await this.ctx.globalState.update('sparql-qlue.savedEndpoints', endpoints);
+  }
+
+  // ── Workspace state ──────────────────────────────────────────────────────────
+
+  getFileEndpoints(): Record<string, string> {
+    return this.ctx.workspaceState.get<Record<string, string>>('sparql-qlue.fileEndpoints') ?? {};
+  }
+
+  async setFileEndpoints(overrides: Record<string, string>): Promise<void> {
+    await this.ctx.workspaceState.update('sparql-qlue.fileEndpoints', overrides);
+  }
+}
+
+// ── Backend configuration ────────────────────────────────────────────────────
+
 export interface BackendConfig {
   prefixMap: Record<string, string>;
   queries: Record<string, string>;

@@ -2,23 +2,26 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getNonce } from './utils';
-import type { LanguageClient } from 'vscode-languageclient/node';
-import type { BackendConfig } from './backendConf';
+import type { SparqlLanguageServer } from './languageServer';
+import { type BackendConfig, ExtensionState } from './state';
 
 export class SettingsPanel {
   public static currentPanel: vscode.WebviewPanel | undefined;
 
   public static createOrShow(
     context: vscode.ExtensionContext,
-    getClient: () => LanguageClient | undefined,
-    settings: any,
-    endpointBackends: Record<string, BackendConfig> = {},
+    lsServer: SparqlLanguageServer,
+    state: ExtensionState,
     onSaveEndpointBackend?: (endpointUrl: string, config: BackendConfig) => Promise<void>,
   ) {
     const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
     if (SettingsPanel.currentPanel) {
       SettingsPanel.currentPanel.reveal(column);
-      SettingsPanel.currentPanel.webview.postMessage({ type: 'set', settings, endpointBackends });
+      SettingsPanel.currentPanel.webview.postMessage({
+        type: 'set',
+        settings: state.getSettings(),
+        endpointBackends: state.getBackends(),
+      });
       return;
     }
     const panel = vscode.window.createWebviewPanel(
@@ -35,33 +38,27 @@ export class SettingsPanel {
     panel.webview.html = SettingsPanel.getHtmlForWebview(
       panel.webview,
       context.extensionPath,
-      settings,
-      endpointBackends,
+      state.getSettings(),
+      state.getBackends(),
     );
     panel.webview.onDidReceiveMessage(async (message) => {
       if (message.type === 'save') {
         const newSettings = message.settings;
-        // Persist in extension globalState — reliable across all projects/restarts
-        await context.globalState.update('sparql-qlue.serverSettings', newSettings);
+        await state.setSettings(newSettings);
         // Always resolve the live client reference at the time of saving
-        const client = getClient();
-        if (client) {
-          try {
-            await client.sendNotification('qlueLs/changeSettings', newSettings);
-          } catch (err) {
-            vscode.window.showErrorMessage(`SPARQL Qlue: Failed to send settings to language server: ${String(err)}`);
-          }
-        } else {
-          vscode.window.showInformationMessage('SPARQL Qlue: Settings saved (language server not connected)');
+        try {
+          await lsServer.updateSettings(newSettings);
+        } catch (err) {
+          vscode.window.showErrorMessage(`SPARQL Qlue: Failed to send settings to language server: ${String(err)}`);
         }
       } else if (message.type === 'saveEndpointBackend') {
         if (onSaveEndpointBackend) {
           await onSaveEndpointBackend(message.endpointUrl, message.config as BackendConfig);
         }
       } else if (message.type === 'deleteEndpointBackend') {
-        const backends = context.globalState.get<Record<string, BackendConfig>>('sparql-qlue.endpointBackends') ?? {};
+        const backends = state.getBackends();
         delete backends[message.endpointUrl as string];
-        await context.globalState.update('sparql-qlue.endpointBackends', backends);
+        await state.setBackends(backends);
       }
     });
     panel.onDidDispose(() => {

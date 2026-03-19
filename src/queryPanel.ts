@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getNonce } from './utils';
+import { ExtensionState } from './state';
 
 export class SparqlQueryPanel implements vscode.WebviewViewProvider {
   static readonly viewId = 'sparql-qlue.queryPanel';
@@ -20,7 +21,7 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
 
   private activeAbortController: AbortController | undefined;
 
-  private static readonly ENDPOINTS_KEY = 'sparql-qlue.savedEndpoints';
+  private state: ExtensionState;
 
   private static readonly DEFAULT_ENDPOINTS = [
     'https://sparql.uniprot.org/sparql',
@@ -45,36 +46,29 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
   ];
 
   private getSavedEndpoints(): string[] {
-    const saved = this.context.globalState.get<string[]>(SparqlQueryPanel.ENDPOINTS_KEY) ?? [];
-    const deleted = this.context.globalState.get<string[]>('sparql-qlue.deletedEndpoints') ?? [];
-    // Append defaults that aren't already in the saved list and haven't been deleted
-    const extras = SparqlQueryPanel.DEFAULT_ENDPOINTS.filter((u) => !saved.includes(u) && !deleted.includes(u));
-    return [...saved, ...extras];
+    const saved = this.state.getSavedEndpoints();
+    if (saved.length === 0) {
+      // First run — seed with defaults and persist so deletions stick
+      void this.state.setSavedEndpoints(SparqlQueryPanel.DEFAULT_ENDPOINTS);
+      return [...SparqlQueryPanel.DEFAULT_ENDPOINTS];
+    }
+    return saved;
   }
 
   private async deleteEndpoint(url: string): Promise<void> {
-    // Remove from saved list; also add it to a deleted-defaults set so it stays gone
-    const saved = this.context.globalState.get<string[]>(SparqlQueryPanel.ENDPOINTS_KEY) ?? [];
-    const deleted = this.context.globalState.get<string[]>('sparql-qlue.deletedEndpoints') ?? [];
-    await this.context.globalState.update(
-      SparqlQueryPanel.ENDPOINTS_KEY,
-      saved.filter((u) => u !== url),
-    );
-    if (SparqlQueryPanel.DEFAULT_ENDPOINTS.includes(url) && !deleted.includes(url)) {
-      await this.context.globalState.update('sparql-qlue.deletedEndpoints', [...deleted, url]);
-    }
+    await this.state.setSavedEndpoints(this.state.getSavedEndpoints().filter((u) => u !== url));
   }
 
   private async saveEndpoint(url: string): Promise<void> {
-    const saved = this.context.globalState.get<string[]>(SparqlQueryPanel.ENDPOINTS_KEY) ?? [];
+    const saved = this.state.getSavedEndpoints();
     if (!saved.includes(url)) {
-      saved.unshift(url);
-      await this.context.globalState.update(SparqlQueryPanel.ENDPOINTS_KEY, saved.slice(0, 50));
+      await this.state.setSavedEndpoints([url, ...saved].slice(0, 50));
     }
   }
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
+    this.state = new ExtensionState(context);
   }
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
@@ -217,12 +211,9 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
         await this.saveEndpoint(endpoint);
         // Persist the endpoint used for this specific file at workspace level
         if (this.currentFileUri) {
-          const overrides = this.context.workspaceState.get<Record<string, string>>('sparql-qlue.fileEndpoints') ?? {};
+          const overrides = this.state.getFileEndpoints();
           if (overrides[this.currentFileUri] !== endpoint) {
-            await this.context.workspaceState.update('sparql-qlue.fileEndpoints', {
-              ...overrides,
-              [this.currentFileUri]: endpoint,
-            });
+            await this.state.setFileEndpoints({ ...overrides, [this.currentFileUri]: endpoint });
           }
         }
         this.view?.webview.postMessage({ type: 'setEndpoints', endpoints: this.getSavedEndpoints() });

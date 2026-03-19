@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { DEFAULT_PREFIX_MAP } from './state';
 
 /**
  * Find the SPARQL endpoint URL from:
@@ -55,7 +56,7 @@ export function getNonce(): string {
 }
 
 /** Fetch prefixes declared using SHACL vocabulary from a SPARQL endpoint. */
-export async function fetchEndpointPrefixes(endpointUrl: string): Promise<Record<string, string>> {
+export async function fetchEndpointPrefixes(endpointUrl: string, timeoutMs = 5000): Promise<Record<string, string>> {
   const query = `PREFIX sh: <http://www.w3.org/ns/shacl#>
 SELECT DISTINCT ?prefix ?namespace WHERE {
   [] sh:namespace ?namespace ; sh:prefix ?prefix .
@@ -65,7 +66,7 @@ SELECT DISTINCT ?prefix ?namespace WHERE {
     url.searchParams.set('query', query);
     const response = await fetch(url.toString(), {
       headers: { Accept: 'application/sparql-results+json' },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) {
       return {};
@@ -83,4 +84,26 @@ SELECT DISTINCT ?prefix ?namespace WHERE {
   } catch {
     return {};
   }
+}
+
+/** Merge endpoint-specific prefixes with defaults, deduplicating by namespace value.
+ * Endpoint prefixes win; a default is added only when neither its key nor its namespace
+ * IRI is already present. The LS Converter rejects maps with duplicate namespace values. */
+export function buildPrefixMap(
+  prefixMap1: Record<string, string>,
+  prefixMap2: Record<string, string> = DEFAULT_PREFIX_MAP,
+): Record<string, string> {
+  if (!prefixMap1 || Object.keys(prefixMap1).length === 0) {
+    return prefixMap2;
+  }
+  const seen = new Set<string>();
+  const map: Record<string, string> = {};
+  // Endpoint prefixes are listed first so they win over defaults on duplicate namespaces.
+  for (const [prefix, ns] of Object.entries({ ...prefixMap1, ...prefixMap2 })) {
+    if (!seen.has(ns)) {
+      map[prefix] = ns;
+      seen.add(ns);
+    }
+  }
+  return map;
 }

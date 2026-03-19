@@ -2,6 +2,103 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { AbstractMessageReader, AbstractMessageWriter, type DataCallback, type Message } from 'vscode-jsonrpc/node';
 import { LanguageClient } from 'vscode-languageclient/node';
+import { type BackendConfig } from './state';
+
+export class SparqlLanguageServer {
+  private _client: LanguageClient | undefined;
+
+  /** Initialise the WASM module and start the LSP client. */
+  async start(context: vscode.ExtensionContext): Promise<void> {
+    const wasmPath = path.join(context.extensionPath, 'dist', 'qlue_ls_bg.wasm');
+    const fs = await import('fs');
+    const wasmBuffer = fs.readFileSync(wasmPath);
+    const reader = new WasmMessageReader();
+    const writer = new WasmMessageWriter();
+
+    // WASM output → vscode-languageclient: the qlue-ls wasm-bindgen bindings write raw JSON
+    // strings (not LSP-framed bytes), so we parse them directly into Message objects.
+    const serverOutputWritable = new WritableStream({
+      write(chunk: unknown) {
+        reader.receive(chunk);
+      },
+      close() {
+        reader.reportClose();
+      },
+    });
+
+    // vscode-languageclient → WASM input: Message objects serialised to raw JSON strings.
+    let enqueueToWasm!: (str: string) => void;
+    const serverInputReadable = new ReadableStream<string>({
+      start(controller) {
+        enqueueToWasm = (str) => controller.enqueue(str);
+      },
+    });
+    writer.setEnqueue((str) => enqueueToWasm(str));
+
+    const qlueModule = await import('qlue-ls');
+    qlueModule.initSync({ module: wasmBuffer });
+
+    const server = qlueModule.init_language_server(serverOutputWritable.getWriter());
+    qlueModule.listen(server, serverInputReadable.getReader()).catch((err: unknown) => {
+      if (String(err).includes('reader cancelled')) {
+        return;
+      }
+      vscode.window.showErrorMessage(`SPARQL Qlue: listen error: ${err}`);
+      console.error('qlue-ls listen error:', err);
+    });
+
+    this._client = new LanguageClient(
+      'sparql-qlue',
+      'SPARQL Qlue Language Server',
+      () => Promise.resolve({ reader, writer }),
+      { documentSelector: [{ language: 'sparql' }] },
+    );
+    await this._client.start();
+    context.subscriptions.push(this._client);
+  }
+
+  // /** Returns the underlying LanguageClient. Throws if called before start(). */
+  // getClient(): LanguageClient {
+  //   if (!this._client) {
+  //     throw new Error('Language server has not been started yet.');
+  //   }
+  //   return this._client;
+  // }
+
+  /** Stop the language server. */
+  stop(): Promise<void> | undefined {
+    return this._client?.stop();
+  }
+
+  /** Register an endpoint as the active backend for the language server.
+   * @param endpoint SPARQL endpoint URL
+   * @param config   Optional prefix map and completion queries for the backend.
+   */
+  async useBackend(endpoint: string, config: BackendConfig): Promise<void> {
+    if (!this._client) {
+      return;
+    }
+    await this._client.sendNotification('qlueLs/addBackend', {
+      name: endpoint,
+      url: endpoint,
+      default: true,
+      prefixMap: config.prefixMap,
+      queries: config.queries,
+    });
+    await this._client.sendNotification('qlueLs/updateDefaultBackend', { backendName: endpoint });
+  }
+
+  /** Push updated settings to the language server. */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    if (!this._client) {
+      return;
+    }
+    await this._client.sendNotification('qlueLs/changeSettings', settings);
+  }
+
+  // NOTE: all available commands at https://github.com/IoannisNezis/Qlue-ls/blob/main/docs/docs/07_lsp_extensions.md
+  // qlueLs/listBackends
+}
 
 // MessageReader that receives raw JSON strings from the WASM output stream and
 // delivers parsed Message objects to vscode-languageclient.
@@ -48,53 +145,4 @@ class WasmMessageWriter extends AbstractMessageWriter {
   }
 
   end(): void {}
-}
-
-export async function startLanguageServer(context: vscode.ExtensionContext): Promise<LanguageClient> {
-  const wasmPath = path.join(context.extensionPath, 'dist', 'qlue_ls_bg.wasm');
-  const fs = await import('fs');
-  const wasmBuffer = fs.readFileSync(wasmPath);
-  const reader = new WasmMessageReader();
-  const writer = new WasmMessageWriter();
-
-  // WASM output → vscode-languageclient: the qlue-ls wasm-bindgen bindings write raw JSON
-  // strings (not LSP-framed bytes), so we parse them directly into Message objects.
-  const serverOutputWritable = new WritableStream({
-    write(chunk: unknown) {
-      reader.receive(chunk);
-    },
-    close() {
-      reader.reportClose();
-    },
-  });
-
-  // vscode-languageclient → WASM input: Message objects serialised to raw JSON strings.
-  let enqueueToWasm!: (str: string) => void;
-  const serverInputReadable = new ReadableStream<string>({
-    start(controller) {
-      enqueueToWasm = (str) => controller.enqueue(str);
-    },
-  });
-  writer.setEnqueue((str) => enqueueToWasm(str));
-  const qlueModule = await import('qlue-ls');
-  qlueModule.initSync({ module: wasmBuffer });
-
-  const server = qlueModule.init_language_server(serverOutputWritable.getWriter());
-  qlueModule.listen(server, serverInputReadable.getReader()).catch((err: unknown) => {
-    if (String(err).includes('reader cancelled')) {
-      return;
-    }
-    vscode.window.showErrorMessage(`SPARQL Qlue: listen error: ${err}`);
-    console.error('qlue-ls listen error:', err);
-  });
-
-  const client = new LanguageClient(
-    'sparql-qlue',
-    'SPARQL Qlue Language Server',
-    () => Promise.resolve({ reader, writer }),
-    { documentSelector: [{ language: 'sparql' }] },
-  );
-  await client.start();
-  context.subscriptions.push(client);
-  return client;
 }
