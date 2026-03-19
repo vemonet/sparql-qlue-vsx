@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { SparqlQueryPanel } from './queryPanel';
+import { SparqlQueryPanel } from './panels/queryPanel';
 import { buildPrefixMap, fetchEndpointPrefixes, findEndpointUrl } from './utils';
-import SettingsPanel from './settingsPanel';
+import SettingsPanel from './panels/settingsPanel';
 import { SparqlLanguageServer } from './languageServer';
 import { DEFAULT_COMPLETION_QUERIES, ExtensionState } from './state';
 

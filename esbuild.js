@@ -39,14 +39,16 @@ const copyWasmPlugin = {
         fs.copyFileSync(wasmSrc, wasmDest);
         console.log('[wasm] copied qlue_ls_bg.wasm to dist/');
       }
-      const htmlSrc = path.resolve(__dirname, 'src/queryPanel.html');
-      const htmlDest = path.resolve(__dirname, 'dist/queryPanel.html');
+      const panelsDist = path.resolve(__dirname, 'dist/panels');
+      fs.mkdirSync(panelsDist, { recursive: true });
+      const htmlSrc = path.resolve(__dirname, 'src/panels/queryPanel.html');
+      const htmlDest = path.resolve(__dirname, 'dist/panels/queryPanel.html');
       if (fs.existsSync(htmlSrc)) {
         fs.copyFileSync(htmlSrc, htmlDest);
         console.log('[html] copied queryPanel.html to dist/');
       }
-      const settingsSrc = path.resolve(__dirname, 'src/settingsPanel.html');
-      const settingsDest = path.resolve(__dirname, 'dist/settingsPanel.html');
+      const settingsSrc = path.resolve(__dirname, 'src/panels/settingsPanel.html');
+      const settingsDest = path.resolve(__dirname, 'dist/panels/settingsPanel.html');
       if (fs.existsSync(settingsSrc)) {
         fs.copyFileSync(settingsSrc, settingsDest);
         console.log('[html] copied settingsPanel.html to dist/');

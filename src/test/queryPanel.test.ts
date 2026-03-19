@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { SparqlQueryPanel, detectQueryType } from '../queryPanel';
+import { SparqlQueryPanel, detectQueryType } from '../panels/queryPanel';
 
 // ── Minimal in-memory ExtensionContext mock ───────────────────────────────────
 

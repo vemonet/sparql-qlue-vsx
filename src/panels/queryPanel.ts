@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getNonce } from './utils';
-import { ExtensionState } from './state';
+import { getNonce } from '../utils';
+import { ExtensionState } from '../state';
 
 export class SparqlQueryPanel implements vscode.WebviewViewProvider {
   static readonly viewId = 'sparql-qlue.queryPanel';
@@ -246,7 +246,7 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
       vscode.Uri.file(path.join(this.context.extensionPath, 'node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.js')),
     );
     const nonce = getNonce();
-    const htmlPath = path.join(this.context.extensionPath, 'src', 'queryPanel.html');
+    const htmlPath = path.join(this.context.extensionPath, 'src', 'panels', 'queryPanel.html');
     return fs
       .readFileSync(htmlPath, 'utf8')
       .replaceAll('__NONCE__', nonce)

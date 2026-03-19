@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getNonce } from './utils';
-import type { SparqlLanguageServer } from './languageServer';
-import { type BackendConfig, ExtensionState } from './state';
+import { getNonce } from '../utils';
+import type { SparqlLanguageServer } from '../languageServer';
+import { type BackendConfig, ExtensionState } from '../state';
 
 export class SettingsPanel {
   public static currentPanel: vscode.WebviewPanel | undefined;
@@ -73,7 +73,7 @@ export class SettingsPanel {
     endpointBackends: Record<string, BackendConfig>,
   ): string {
     const nonce = getNonce();
-    const htmlPath = path.join(extensionPath, 'src', 'settingsPanel.html');
+    const htmlPath = path.join(extensionPath, 'src', 'panels', 'settingsPanel.html');
     const settingsJson = JSON.stringify(settings ?? {});
     const endpointBackendsJson = JSON.stringify(endpointBackends ?? {});
     return fs
