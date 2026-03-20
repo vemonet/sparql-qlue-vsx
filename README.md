@@ -1,14 +1,14 @@
 # 🫆 SPARQL Qlue
 
-A VisualStudio Code extension for working with SPARQL query files (`.rq`, `.sparql`) providing:
+[![Tests](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml/badge.svg)](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml)
+
+A VisualStudio Code extension for working with [SPARQL](https://www.w3.org/TR/sparql12-query/) query files (`.rq`, `.sparql`) providing:
 
 - Syntax highlighting,
 - Diagnostics, completions, formatting using the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server running via WebAssembly,
 - Execute SPARQL query and inspect results with [YASGUI](https://github.com/rdfjs/Yasgui) YASR package.
 
-![Screenshot extension](docs/screenshot.png)
-
-https://raw.githubusercontent.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png
+![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png)
 
 ## Language Server
 
@@ -37,7 +37,7 @@ Settings are persisted to workspace configuration (`sparql-qlue.serverSettings`)
 - Configure the language server behavior,
 - Configure backends with custom prefixes and completion queries per endpoint.
 
-![Screenshot extension](docs/screenshot-settings.png)
+![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
 
 ## Extension Settings
 

@@ -1,19 +1,33 @@
 {
   "name": "sparql-qlue",
   "displayName": "SPARQL Qlue",
-  "description": "A VSCode extension for the SPARQL query language, using the qlue‑ls language server that provides syntax highlighting, autocomplete, formatting, and integrated query execution.",
-  "version": "0.0.1",
+  "description": "VSCode extension for the SPARQL query language, using the qlue‑ls language server that provides syntax highlighting, autocomplete, formatting, and integrated query execution.",
+  "version": "0.0.0",
   "publisher": "vemonet",
   "license": "MIT",
   "icon": "docs/icon.png",
+  "homepage": "https://github.com/vemonet/sparql-qlue-vsx",
   "repository": {
     "type": "git",
     "url": "https://github.com/vemonet/sparql-qlue-vsx"
+  },
+  "bugs": {
+    "url": "https://github.com/vemonet/sparql-qlue-vsx/issues"
+  },
+  "galleryBanner": {
+    "color": "#002b36",
+    "theme": "dark"
   },
   "author": {
     "name": "Vincent Emonet",
     "email": "vincent.emonet@gmail.com"
   },
+  "maintainers": [
+    {
+      "name": "Vincent Emonet",
+      "email": "vincent.emonet@gmail.com"
+    }
+  ],
   "categories": [
     "Programming Languages",
     "Formatters",
@@ -119,6 +133,16 @@
           "type": "object",
           "default": {},
           "description": "Language server settings (format, completion, prefixes). Managed via the SPARQL Qlue: Configure Language Server command."
+        },
+        "sparql-qlue.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "markdownDescription": "Traces the communication between VSCode and the SPARQL language server."
         }
       }
     },
@@ -175,7 +199,7 @@
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "npm run check-types && npm run lint && node esbuild.js --production && vsce package",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "pretest": "tsc -p . --outDir out && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "fmt": "prettier --write . && eslint --fix src",
@@ -186,6 +210,7 @@
     "changelog": "git cliff -o CHANGELOG.md --tag $(npm pkg get version | tr -d \\\")",
     "version": "npm run package && git cliff -o CHANGELOG.md --tag $(npm pkg get version | tr -d \\\") && git add CHANGELOG.md",
     "postversion": "git tag v$(npm pkg get version | tr -d \\\") && git push origin v$(npm pkg get version | tr -d \\\")",
+    "package:vsce": "vsce package",
     "publish:vsce": "vsce package && vsce publish",
     "publish:ovsx": "ovsx publish",
     "publish:all": "npm run publish:vsce && npm run publish:ovsx"
