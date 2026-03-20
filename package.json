@@ -335,16 +335,8 @@
     "printWidth": 120
   },
   "lint-staged": {
-    "*.ts?(x)": [
-      "prettier --parser typescript --write",
-      "eslint --fix"
-    ],
-    "*.html": [
+    "*.{ts,tsx,html,md,json,css}": [
       "prettier --write",
-      "eslint --fix"
-    ],
-    "*.css": [
-      "prettier --parser css --write",
       "eslint --fix"
     ]
   }

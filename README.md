@@ -2,7 +2,6 @@
 
 [![VS Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/vemonet.sparql-qlue)](https://marketplace.visualstudio.com/items?itemName=vemonet.sparql-qlue) [![Open VSX Version](https://img.shields.io/open-vsx/v/vemonet/sparql-qlue)](https://open-vsx.org/extension/vemonet/sparql-qlue)
 
-
 A VisualStudio Code extension for working with [SPARQL](https://www.w3.org/TR/sparql12-query/) query files (`.rq`, `.sparql`) providing:
 
 - Syntax highlighting,
