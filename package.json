@@ -121,31 +121,6 @@
         "category": "SPARQL Qlue"
       }
     ],
-    "configuration": {
-      "title": "SPARQL Qlue",
-      "properties": {
-        "sparql-qlue.formatOnSave": {
-          "type": "boolean",
-          "default": false,
-          "description": "Automatically format SPARQL documents via the language server when saving."
-        },
-        "sparql-qlue.serverSettings": {
-          "type": "object",
-          "default": {},
-          "description": "Language server settings (format, completion, prefixes). Managed via the SPARQL Qlue: Configure Language Server command."
-        },
-        "sparql-qlue.trace.server": {
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "markdownDescription": "Traces the communication between VSCode and the SPARQL language server."
-        }
-      }
-    },
     "menus": {
       "editor/title": [
         {
@@ -191,7 +166,122 @@
         "mac": "cmd+enter",
         "when": "resourceLangId == sparql"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "SPARQL Qlue",
+      "properties": {
+        "sparql-qlue.formatOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically format SPARQL documents via the language server when saving."
+        },
+        "sparql-qlue.format.alignPredicates": {
+          "type": "boolean",
+          "default": false,
+          "description": "Align triple predicates in a column."
+        },
+        "sparql-qlue.format.alignPrefixes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Align PREFIX declarations in a column."
+        },
+        "sparql-qlue.format.separatePrologue": {
+          "type": "boolean",
+          "default": true,
+          "description": "Add a blank line between the prologue and the query body."
+        },
+        "sparql-qlue.format.capitalizeKeywords": {
+          "type": "boolean",
+          "default": true,
+          "description": "Uppercase SPARQL keywords (SELECT, WHERE, …)."
+        },
+        "sparql-qlue.format.insertSpaces": {
+          "type": "boolean",
+          "default": true,
+          "description": "Indent with spaces (off = tabs)."
+        },
+        "sparql-qlue.format.tabSize": {
+          "type": "integer",
+          "default": 2,
+          "description": "Number of spaces per indentation level."
+        },
+        "sparql-qlue.format.whereNewLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Place the WHERE clause on its own line."
+        },
+        "sparql-qlue.format.filterSameLine": {
+          "type": "boolean",
+          "default": true,
+          "description": "Keep FILTER on the same line as its block."
+        },
+        "sparql-qlue.format.lineLength": {
+          "type": "integer",
+          "default": 120,
+          "description": "Target line length for wrapping."
+        },
+        "sparql-qlue.format.contractTriples": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use ; notation to contract triples with the same subject."
+        },
+        "sparql-qlue.format.keepEmptyLines": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preserve intentional blank lines from the original source."
+        },
+        "sparql-qlue.completion.timeoutMs": {
+          "type": "integer",
+          "default": 10000,
+          "description": "SPARQL query timeout for completion requests (ms)."
+        },
+        "sparql-qlue.completion.resultSizeLimit": {
+          "type": "integer",
+          "default": 50,
+          "description": "Maximum number of completion items returned."
+        },
+        "sparql-qlue.completion.subjectCompletionTriggerLength": {
+          "type": "integer",
+          "default": 3,
+          "description": "Minimum typed characters before subject completion fires."
+        },
+        "sparql-qlue.completion.objectCompletionSuffix": {
+          "type": "boolean",
+          "default": true,
+          "description": "Append a trailing space/dot after inserting an object completion."
+        },
+        "sparql-qlue.completion.variableCompletionLimit": {
+          "type": "integer",
+          "default": 10,
+          "description": "Maximum variable completion suggestions."
+        },
+        "sparql-qlue.completion.sameSubjectSemicolon": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use semicolon notation when completing predicates for a repeated subject."
+        },
+        "sparql-qlue.prefixes.addMissing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically insert missing PREFIX declarations."
+        },
+        "sparql-qlue.prefixes.removeUnused": {
+          "type": "boolean",
+          "default": false,
+          "description": "Remove PREFIX declarations that are not used in the query."
+        },
+        "sparql-qlue.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "markdownDescription": "Traces the communication between VSCode and the SPARQL language server."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -209,7 +299,7 @@
     "upgrade": "npx npm-check-updates -u",
     "changelog": "git cliff -o CHANGELOG.md --tag $(npm pkg get version | tr -d \\\")",
     "version": "npm run package && git cliff -o CHANGELOG.md --tag $(npm pkg get version | tr -d \\\") && git add CHANGELOG.md",
-    "postversion": "git tag v$(npm pkg get version | tr -d \\\") && git push origin v$(npm pkg get version | tr -d \\\")",
+    "postversion": "git push origin v$(npm pkg get version | tr -d \\\") && npm run publish:all",
     "package:vsce": "vsce package",
     "publish:vsce": "vsce package && vsce publish",
     "publish:ovsx": "ovsx publish",

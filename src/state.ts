@@ -20,11 +20,47 @@ export class ExtensionState {
   }
 
   getSettings(): Record<string, unknown> {
-    return this.ctx.globalState.get<Record<string, unknown>>('sparql-qlue.serverSettings') ?? {};
+    const config = vscode.workspace.getConfiguration('sparql-qlue');
+    return {
+      format: {
+        alignPredicates: config.get<boolean>('format.alignPredicates', false),
+        alignPrefixes: config.get<boolean>('format.alignPrefixes', false),
+        separatePrologue: config.get<boolean>('format.separatePrologue', true),
+        capitalizeKeywords: config.get<boolean>('format.capitalizeKeywords', true),
+        insertSpaces: config.get<boolean>('format.insertSpaces', true),
+        tabSize: config.get<number>('format.tabSize', 2),
+        whereNewLine: config.get<boolean>('format.whereNewLine', false),
+        filterSameLine: config.get<boolean>('format.filterSameLine', true),
+        lineLength: config.get<number>('format.lineLength', 120),
+        contractTriples: config.get<boolean>('format.contractTriples', false),
+        keepEmptyLines: config.get<boolean>('format.keepEmptyLines', false),
+      },
+      completion: {
+        timeoutMs: config.get<number>('completion.timeoutMs', 10000),
+        resultSizeLimit: config.get<number>('completion.resultSizeLimit', 50),
+        subjectCompletionTriggerLength: config.get<number>('completion.subjectCompletionTriggerLength', 3),
+        objectCompletionSuffix: config.get<boolean>('completion.objectCompletionSuffix', true),
+        variableCompletionLimit: config.get<number>('completion.variableCompletionLimit', 10),
+        sameSubjectSemicolon: config.get<boolean>('completion.sameSubjectSemicolon', true),
+      },
+      prefixes: {
+        addMissing: config.get<boolean>('prefixes.addMissing', true),
+        removeUnused: config.get<boolean>('prefixes.removeUnused', false),
+      },
+    };
   }
 
   async setSettings(settings: Record<string, unknown>): Promise<void> {
-    await this.ctx.globalState.update('sparql-qlue.serverSettings', settings);
+    const config = vscode.workspace.getConfiguration('sparql-qlue');
+    const updates: Promise<void>[] = [];
+    for (const [section, values] of Object.entries(settings)) {
+      if (values && typeof values === 'object') {
+        for (const [key, value] of Object.entries(values as Record<string, unknown>)) {
+          updates.push(Promise.resolve(config.update(`${section}.${key}`, value, vscode.ConfigurationTarget.Global)));
+        }
+      }
+    }
+    await Promise.all(updates);
   }
 
   getSavedEndpoints(): string[] {

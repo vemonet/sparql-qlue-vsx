@@ -1,12 +1,13 @@
 # 🫆 SPARQL Qlue
 
-[![Tests](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml/badge.svg)](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml)
+[![VS Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/vemonet.sparql-qlue)](https://marketplace.visualstudio.com/items?itemName=vemonet.sparql-qlue) [![Open VSX Version](https://img.shields.io/open-vsx/v/vemonet/sparql-qlue)](https://open-vsx.org/extension/vemonet/sparql-qlue)
+
 
 A VisualStudio Code extension for working with [SPARQL](https://www.w3.org/TR/sparql12-query/) query files (`.rq`, `.sparql`) providing:
 
 - Syntax highlighting,
-- Diagnostics, completions, formatting using the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server running via WebAssembly,
-- Execute SPARQL query and inspect results with [YASGUI](https://github.com/rdfjs/Yasgui) YASR package.
+- Diagnostics, completions, formatting, fixes using the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server running via WebAssembly,
+- Execute SPARQL query and inspect results with [YASGUI](https://github.com/rdfjs/Yasgui) YASR component.
 
 ![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png)
 

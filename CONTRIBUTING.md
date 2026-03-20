@@ -1,5 +1,7 @@
 # Contributing
 
+[![Tests](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml/badge.svg)](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml)
+
 ## 📥 Install
 
 ```sh

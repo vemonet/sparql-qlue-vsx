@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 ### 📚 Documentation
 
 - Doc: add icon, improve readme
-refactor: improve docs, improve YASGUI dark theme, - ([3841969](https://github.com/vemonet/sparql-qlue-vsx/commit/3841969b6afe60e35d941214b892415c1d2b5529))
+  refactor: improve docs, improve YASGUI dark theme, - ([3841969](https://github.com/vemonet/sparql-qlue-vsx/commit/3841969b6afe60e35d941214b892415c1d2b5529))
 
 ### 🚜 Refactor
 

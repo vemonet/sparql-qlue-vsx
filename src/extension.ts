@@ -197,20 +197,34 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Start the WASM language server (non-blocking — commands are already registered)
+  // Keep the language server in sync when users edit settings via the VS Code Settings UI
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (
+        e.affectsConfiguration('sparql-qlue.format') ||
+        e.affectsConfiguration('sparql-qlue.completion') ||
+        e.affectsConfiguration('sparql-qlue.prefixes')
+      ) {
+        lsServer.updateSettings(state.getSettings()).catch((err: unknown) => {
+          vscode.window.showErrorMessage(
+            `SPARQL Qlue: Failed to apply settings: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        });
+      }
+    }),
+  );
+
   lsServer
     .start(context)
     .then(async () => {
-      // Re-apply persisted settings so they survive a VS Code restart
-      const savedSettings = state.getSettings();
-      if (Object.keys(savedSettings).length > 0) {
-        try {
-          await lsServer.updateSettings(savedSettings as Record<string, unknown>);
-        } catch (err) {
-          // Non-fatal — settings will be re-applied when user opens the settings panel
-          vscode.window.showWarningMessage(
-            `SPARQL Qlue: Failed to apply saved settings: ${err instanceof Error ? err.message : String(err)}`,
-          );
-        }
+      // Apply current settings (from VS Code configuration) so the LS starts with the right config
+      try {
+        await lsServer.updateSettings(state.getSettings());
+      } catch (err) {
+        // Non-fatal — settings will be re-applied when user opens the settings panel
+        vscode.window.showWarningMessage(
+          `SPARQL Qlue: Failed to apply saved settings: ${err instanceof Error ? err.message : String(err)}`,
+        );
       }
       // Seed backend for the already-open SPARQL file (if any)
       const activeEditor = vscode.window.activeTextEditor;
