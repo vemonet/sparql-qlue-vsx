@@ -47,22 +47,18 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
 
   private getSavedEndpoints(): string[] {
     const saved = this.state.getSavedEndpoints();
-    if (saved.length === 0) {
-      // First run — seed with defaults and persist so deletions stick
-      void this.state.setSavedEndpoints(SparqlQueryPanel.DEFAULT_ENDPOINTS);
-      return [...SparqlQueryPanel.DEFAULT_ENDPOINTS];
-    }
-    return saved;
+    return saved.length > 0 ? saved : [...SparqlQueryPanel.DEFAULT_ENDPOINTS];
   }
 
   private async deleteEndpoint(url: string): Promise<void> {
-    await this.state.setSavedEndpoints(this.state.getSavedEndpoints().filter((u) => u !== url));
+    const list = this.getSavedEndpoints();
+    await this.state.setSavedEndpoints(list.filter((u) => u !== url));
   }
 
   private async saveEndpoint(url: string): Promise<void> {
-    const saved = this.state.getSavedEndpoints();
-    if (!saved.includes(url)) {
-      await this.state.setSavedEndpoints([url, ...saved].slice(0, 50));
+    const list = this.getSavedEndpoints();
+    if (!list.includes(url)) {
+      await this.state.setSavedEndpoints([url, ...list].slice(0, 50));
     }
   }
 

@@ -1,10 +1,11 @@
 {
   "name": "sparql-qlue",
   "displayName": "SPARQL Qlue",
-  "description": "Language server for SPARQL with qlue-ls (syntax highlighting, autocomplete, formatting), and query execution",
+  "description": "A VSCode extension for the SPARQL query language, using the qlue‑ls language server that provides syntax highlighting, autocomplete, formatting, and integrated query execution.",
   "version": "0.0.1",
   "publisher": "vemonet",
   "license": "MIT",
+  "icon": "docs/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/vemonet/sparql-qlue-vsx"
@@ -16,8 +17,7 @@
   "categories": [
     "Programming Languages",
     "Formatters",
-    "Linters",
-    "Themes"
+    "Linters"
   ],
   "keywords": [
     "SPARQL",

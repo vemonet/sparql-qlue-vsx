@@ -36,15 +36,13 @@ Bump the version in `package.json`: `fix` | `minor` | `major`
 npm version fix
 ```
 
-Then build and publish:
+Then package:
 
 ```sh
-# Package the extension
 npm run package
-npm run package:vsce
 ```
 
-Or use the combined npm scripts:
+And publish:
 
 ```sh
 npm run publish:vsce    # VS Code Marketplace
@@ -54,11 +52,11 @@ npm run publish:all     # both
 
 > [!WARNING]
 >
-> Tokens: get a VS Code Marketplace PAT from [Azure DevOps](https://dev.azure.com), and an Open VSX token from [open-vsx.org/user-settings/tokens](https://open-vsx.org/user-settings/tokens).
+> Get a VS Code Marketplace PAT from [Azure DevOps](https://dev.azure.com), and an Open VSX token from [open-vsx.org/user-settings/tokens](https://open-vsx.org/user-settings/tokens).
 
 ## 📝 Notes
 
-Icons: https://code.visualstudio.com/api/references/icons-in-labels
+VSCode Icons: https://code.visualstudio.com/api/references/icons-in-labels
 
 VSCode marketplace publisher: https://marketplace.visualstudio.com/manage/
 
