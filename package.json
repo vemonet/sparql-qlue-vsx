@@ -2,7 +2,7 @@
   "name": "sparql-qlue",
   "displayName": "SPARQL Qlue",
   "description": "VSCode extension for the SPARQL query language, using the qlue‑ls language server that provides syntax highlighting, autocomplete, formatting, and integrated query execution.",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "publisher": "vemonet",
   "license": "MIT",
   "icon": "docs/icon.png",
