@@ -1,5 +1,11 @@
 # 📜 Changelog
 
+## [0.0.4](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.3..v0.0.4) - 2026-03-21
+
+### 🐛 Bug Fixes
+
+- Fix YASGUI YASR CSS inclusion in query results webview - ([e10afe6](https://github.com/vemonet/sparql-qlue-vsx/commit/e10afe61226315930f88de7dde95c190f85be278))
+
 ## [0.0.3](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.2..v0.0.3) - 2026-03-21
 
 ### 🐛 Bug Fixes
