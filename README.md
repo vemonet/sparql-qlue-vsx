@@ -24,7 +24,12 @@ Use the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server compi
 
 Run the active query with **Ctrl+Enter** / **Cmd+Enter**, the **▶** file header button, or **right-click → Execute SPARQL Query**
 
-Results are displayed in the **SPARQL Results** panel using [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
+Results are displayed in the **SPARQL Results** panel using [YASGUI](https://github.com/rdfjs/Yasgui) YASR component, with plugins for:
+
+- Graph visualization of `CONSTRUCT` query results
+- Map visualization of Geo SPARQL results
+
+![Screenshot geo query](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-geo.png)
 
 > [!TIP]
 >
@@ -38,7 +43,7 @@ Click the ⚙️ button in the file header, or **right-click → Configure SPARQ
 
 - Backends with custom prefixes and completion queries per endpoint stored in global state.
 
-![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
+![Screenshot settings](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
 
 ## 🛠️ Contributing
 
