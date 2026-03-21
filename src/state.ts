@@ -9,15 +9,7 @@ import * as vscode from 'vscode';
 export class ExtensionState {
   constructor(private readonly ctx: vscode.ExtensionContext) {}
 
-  // ── Global state ────────────────────────────────────────────────────────────
-
-  getBackends(): Record<string, BackendConfig> {
-    return this.ctx.globalState.get<Record<string, BackendConfig>>('sparql-qlue.endpointBackends') ?? {};
-  }
-
-  async setBackends(backends: Record<string, BackendConfig>): Promise<void> {
-    await this.ctx.globalState.update('sparql-qlue.endpointBackends', backends);
-  }
+  // ── VSCode Settings ────────────────────────────────────────────────────────
 
   getSettings(): Record<string, unknown> {
     const config = vscode.workspace.getConfiguration('sparql-qlue');
@@ -32,7 +24,7 @@ export class ExtensionState {
         whereNewLine: config.get<boolean>('format.whereNewLine', false),
         filterSameLine: config.get<boolean>('format.filterSameLine', true),
         lineLength: config.get<number>('format.lineLength', 120),
-        contractTriples: config.get<boolean>('format.contractTriples', false),
+        contractTriples: config.get<boolean>('format.contractTriples', true),
         keepEmptyLines: config.get<boolean>('format.keepEmptyLines', false),
       },
       completion: {
@@ -63,12 +55,51 @@ export class ExtensionState {
     await Promise.all(updates);
   }
 
+  // ── Global state ────────────────────────────────────────────────────────────
+
+  getBackends(): Record<string, BackendConfig> {
+    return this.ctx.globalState.get<Record<string, BackendConfig>>('sparql-qlue.endpointBackends') ?? {};
+  }
+
+  async setBackends(backends: Record<string, BackendConfig>): Promise<void> {
+    await this.ctx.globalState.update('sparql-qlue.endpointBackends', backends);
+  }
+
   getSavedEndpoints(): string[] {
     return this.ctx.globalState.get<string[]>('sparql-qlue.savedEndpoints') ?? [];
   }
 
   async setSavedEndpoints(endpoints: string[]): Promise<void> {
     await this.ctx.globalState.update('sparql-qlue.savedEndpoints', endpoints);
+  }
+
+  async resetAll(): Promise<void> {
+    await this.ctx.globalState.update('sparql-qlue.endpointBackends', undefined);
+    await this.ctx.globalState.update('sparql-qlue.savedEndpoints', undefined);
+    await this.ctx.workspaceState.update('sparql-qlue.fileEndpoints', undefined);
+    const config = vscode.workspace.getConfiguration('sparql-qlue');
+    const keys = [
+      'format.alignPredicates',
+      'format.alignPrefixes',
+      'format.separatePrologue',
+      'format.capitalizeKeywords',
+      'format.insertSpaces',
+      'format.tabSize',
+      'format.whereNewLine',
+      'format.filterSameLine',
+      'format.lineLength',
+      'format.contractTriples',
+      'format.keepEmptyLines',
+      'completion.timeoutMs',
+      'completion.resultSizeLimit',
+      'completion.subjectCompletionTriggerLength',
+      'completion.objectCompletionSuffix',
+      'completion.variableCompletionLimit',
+      'completion.sameSubjectSemicolon',
+      'prefixes.addMissing',
+      'prefixes.removeUnused',
+    ];
+    await Promise.all(keys.map((k) => config.update(k, undefined, vscode.ConfigurationTarget.Global)));
   }
 
   // ── Workspace state ──────────────────────────────────────────────────────────
@@ -97,62 +128,95 @@ export function defaultBackendConfig(): BackendConfig {
 }
 
 export const DEFAULT_PREFIX_MAP: Record<string, string> = {
-  annotation: 'http://purl.uniprot.org/annotation/',
+  activitystreams: 'https://www.w3.org/ns/activitystreams#',
+  bd: 'http://www.bigdata.com/rdf#',
   bibo: 'http://purl.org/ontology/bibo/',
   busco: 'http://busco.ezlab.org/schema#',
   chebi: 'http://purl.obolibrary.org/obo/CHEBI_',
-  citation: 'http://purl.uniprot.org/citations/',
   cito: 'http://purl.org/spar/cito/',
+  csvw: 'http://purl.org/csvw/vocab#',
+  dblp: 'https://dblp.org/rdf/schema#',
+  dc: 'http://purl.org/dc/elements/1.1/',
   dcat: 'http://www.w3.org/ns/dcat#',
   dcmit: 'http://purl.org/dc/dcmitype/',
   dcterms: 'http://purl.org/dc/terms/',
-  disease: 'http://purl.uniprot.org/diseases/',
   ECO: 'http://purl.obolibrary.org/obo/ECO_',
-  'embl-cds': 'http://purl.uniprot.org/embl-cds/',
   ensembl: 'http://rdf.ebi.ac.uk/resource/ensembl/',
-  enzyme: 'http://purl.uniprot.org/enzyme/',
+  hydra: 'http://www.w3.org/ns/hydra/core#',
   faldo: 'http://biohackathon.org/resource/faldo#',
   foaf: 'http://xmlns.com/foaf/0.1/',
+  genex: 'http://purl.org/genex#',
+  geo: 'http://www.opengis.net/ont/geosparql#',
+  geof: 'http://www.opengis.net/def/function/geosparql/',
   go: 'http://purl.obolibrary.org/obo/GO_',
-  hs: 'https://hamap.expasy.org/rdf/vocab#',
-  isoform: 'http://purl.uniprot.org/isoforms/',
-  keywords: 'http://purl.uniprot.org/keywords/',
-  location: 'http://purl.uniprot.org/locations/',
+  mondo: 'http://purl.obolibrary.org/obo/MONDO_',
+  np: 'http://www.nanopub.org/nschema#',
+  npx: 'http://purl.org/nanopub/x/',
   obo: 'http://purl.obolibrary.org/obo/',
   oboInOwl: 'http://www.geneontology.org/formats/oboInOwl#',
   owl: 'http://www.w3.org/2002/07/owl#',
-  patent: 'http://purl.uniprot.org/EPO/',
   pav: 'http://purl.org/pav/',
-  position: 'http://purl.uniprot.org/position/',
-  prism: 'http://prismstandard.org/namespaces/basic/2.0/',
+  prov: 'http://www.w3.org/ns/prov#',
   pubmed: 'http://purl.uniprot.org/pubmed/',
-  range: 'http://purl.uniprot.org/range/',
+  qudt: 'http://qudt.org/schema/qudt/',
   rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
   rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
   rh: 'http://rdf.rhea-db.org/',
   schema: 'http://schema.org/',
   sd: 'http://www.w3.org/ns/sparql-service-description#',
   sh: 'http://www.w3.org/ns/shacl#',
+  shex: 'http://www.w3.org/ns/shex#',
+  sio: 'http://semanticscience.org/resource/',
+  sioc: 'http://rdfs.org/sioc/ns#',
   skos: 'http://www.w3.org/2004/02/skos/core#',
   sp: 'http://spinrdf.org/sp#',
   stato: 'http://purl.obolibrary.org/obo/STATO_',
   taxon: 'http://purl.uniprot.org/taxonomy/',
-  tissue: 'http://purl.uniprot.org/tissues/',
+  time: 'http://www.w3.org/2006/time#',
   uniparc: 'http://purl.uniprot.org/uniparc/',
   uniprot: 'http://purl.uniprot.org/uniprot/',
   up: 'http://purl.uniprot.org/core/',
+  vcard: 'http://www.w3.org/2006/vcard/ns#',
   voag: 'http://voag.linkedmodel.org/schema/voag#',
   void: 'http://rdfs.org/ns/void#',
+  wd: 'http://www.wikidata.org/entity/',
+  wdt: 'http://www.wikidata.org/prop/direct/',
+  wikibase: 'http://wikiba.se/ontology#',
   xsd: 'http://www.w3.org/2001/XMLSchema#',
-  genex: 'http://purl.org/genex#',
 };
+
+export const DEFAULT_ENDPOINTS: string[] = [
+  'https://sparql.uniprot.org/sparql',
+  'https://sparql.dblp.org/sparql',
+  'https://query.wikidata.org/sparql',
+  'https://commons-query.wikimedia.org/sparql',
+  'https://qlever.dev/api/wikidata',
+  'https://qlever.dev/api/wikimedia-commons',
+  'https://qlever.dev/api/osm-planet',
+  'https://qlever.dev/api/freebase',
+  'https://qlever.dev/api/imdb',
+  'https://www.bgee.org/sparql/',
+  'https://sparql.omabrowser.org/sparql/',
+  'https://beta.sparql.swisslipids.org/',
+  'https://sparql.rhea-db.org/sparql/',
+  'https://sparql.cellosaurus.org/sparql',
+  'https://sparql.sibils.org/sparql',
+  'https://kg.earthmetabolome.org/metrin/api/',
+  'https://hamap.expasy.org/sparql/',
+  'https://rdf.metanetx.org/sparql/',
+  'https://sparql.orthodb.org/sparql',
+  'https://sparql.wikipathways.org/sparql/',
+  'https://id.nlm.nih.gov/mesh/sparql',
+  'https://agrovoc.fao.org/sparql',
+  'https://data.europa.eu/sparql',
+  '',
+];
 
 export const DEFAULT_COMPLETION_QUERIES: Record<string, string> = {
   subjectCompletion: `{% include "prefix_declarations" %}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT ?qlue_ls_entity (SAMPLE(?label) as ?qlue_ls_label) WHERE {
-  ?qlue_ls_entity rdf:type ?type ; rdfs:label ?label .
+  ?qlue_ls_entity a ?type ; rdfs:label ?label .
   {% if search_term_uncompressed %}
   FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
   {% elif search_term %}

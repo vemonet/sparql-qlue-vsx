@@ -1,0 +1,15 @@
+#+ endpoint: https://qlever.dev/api/osm-planet
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+
+SELECT * WHERE {
+  VALUES (?wktLabel ?lat ?lon ?wktColor) {
+    ("Geneva" 46.2044 6.1432 "blue")
+    ("Lausanne" 46.5197 6.6323 "red")
+    ("Sion" 46.2297 7.3597 "green")
+  }
+  # Create point geometry from coordinates in WGS84 (EPSG:4326)
+  BIND (STRDT(CONCAT("POINT(", STR(?lon), " ", STR(?lat), ")"),geo:wktLiteral) AS ?point_no_crs_defined)
+  BIND (STRDT(CONCAT("SRID=4326;POINT(", STR(?lon), " ", STR(?lat), ")"),geo:wktLiteral) AS ?point_ewkt_4326)
+  BIND (STRDT(CONCAT("<http://www.opengis.net/def/crs/EPSG/0/4326> POINT(", STR(?lat), " ", STR(?lon), ")"),geo:wktLiteral) AS ?point_opengis_4326)
+  BIND (?wktLabel AS ?wktTooltip)
+}

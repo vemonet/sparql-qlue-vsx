@@ -1,7 +1,7 @@
 {
   "name": "sparql-qlue",
   "displayName": "SPARQL Qlue",
-  "description": "VSCode extension for the SPARQL query language, using the qlue‑ls language server that provides syntax highlighting, autocomplete, formatting, and integrated query execution.",
+  "description": "VSCode extension for the SPARQL query language, using the qlue‑ls language server that provides autocomplete, formatting, syntax highlighting, and integrated query execution.",
   "version": "0.0.1",
   "publisher": "vemonet",
   "license": "MIT",
@@ -222,7 +222,7 @@
         },
         "sparql-qlue.format.contractTriples": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Use ; notation to contract triples with the same subject."
         },
         "sparql-qlue.format.keepEmptyLines": {
@@ -287,6 +287,7 @@
     "vscode:prepublish": "npm run package",
     "compile": "npm run lint && node esbuild.js",
     "package": "npm run lint && node esbuild.js --production",
+    "package:vsce": "vsce package",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
@@ -298,21 +299,19 @@
     "upgrade": "npx npm-check-updates -u",
     "changelog": "git cliff -o CHANGELOG.md --tag $(npm pkg get version | tr -d \\\")",
     "version": "npm run package && npm run changelog && git add CHANGELOG.md",
-    "postversion": "git push origin v$(npm pkg get version | tr -d \\\") && npm run publish:all",
-    "package:vsce": "vsce package",
+    "postversion": "git push origin v$(npm pkg get version | tr -d \\\") && npm-run-all -p publish:*",
     "publish:vsce": "vsce package && vsce publish",
-    "publish:ovsx": "ovsx publish",
-    "publish:all": "npm run publish:vsce && npm run publish:ovsx"
+    "publish:ovsx": "ovsx publish"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
+    "@types/node": "24.x",
     "@types/vscode": "^1.110.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.27.3",
-    "eslint": "^9.39.3",
+    "eslint": "^10.1.0",
     "git-cliff": "^2.12.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
@@ -320,13 +319,15 @@
     "ovsx": "^0.10.9",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "typescript-eslint": "^8.57.1"
   },
   "dependencies": {
+    "@matdata/yasgui-graph-plugin": "^1.6.2",
     "@zazuko/yasr": "^4.6.1",
     "qlue-ls": "^2.5.4",
     "vscode-languageclient": "^9.0.1",
-    "vscode-languageserver-protocol": "^3.17.5"
+    "vscode-languageserver-protocol": "^3.17.5",
+    "yasgui-geo-tg": "^1.1.2"
   },
   "prettier": {
     "useTabs": false,

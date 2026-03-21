@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getNonce } from '../utils';
-import { ExtensionState } from '../state';
+import { ExtensionState, DEFAULT_ENDPOINTS } from '../state';
 
 export class SparqlQueryPanel implements vscode.WebviewViewProvider {
   static readonly viewId = 'sparql-qlue.queryPanel';
@@ -23,31 +23,9 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
 
   private state: ExtensionState;
 
-  private static readonly DEFAULT_ENDPOINTS = [
-    'https://sparql.uniprot.org/sparql',
-    'https://qlever.dev/api/wikidata',
-    'https://qlever.dev/api/wikimedia-commons',
-    'https://qlever.dev/api/dblp',
-    'https://qlever.dev/api/osm-planet',
-    'https://qlever.dev/api/freebase',
-    'https://qlever.dev/api/imdb',
-    'https://query.wikidata.org/sparql',
-    'https://www.bgee.org/sparql/',
-    'https://sparql.omabrowser.org/sparql/',
-    'https://beta.sparql.swisslipids.org/',
-    'https://sparql.rhea-db.org/sparql/',
-    'https://sparql.cellosaurus.org/sparql',
-    'https://sparql.sibils.org/sparql',
-    'https://kg.earthmetabolome.org/metrin/api/',
-    'https://biosoda.unil.ch/graphdb/repositories/biodatafuse',
-    'https://hamap.expasy.org/sparql/',
-    'https://rdf.metanetx.org/sparql/',
-    'https://sparql.orthodb.org/sparql',
-  ];
-
   private getSavedEndpoints(): string[] {
     const saved = this.state.getSavedEndpoints();
-    return saved.length > 0 ? saved : [...SparqlQueryPanel.DEFAULT_ENDPOINTS];
+    return saved.length > 0 ? saved : [...DEFAULT_ENDPOINTS];
   }
 
   private async deleteEndpoint(url: string): Promise<void> {
@@ -213,11 +191,14 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
           }
         }
         this.view?.webview.postMessage({ type: 'setEndpoints', endpoints: this.getSavedEndpoints() });
+        // Build merged prefix map: backend prefixes + query-declared prefixes (query wins)
+        const prefixes = { ...(this.state.getBackends()[endpoint]?.prefixMap ?? {}), ...extractQueryPrefixes(query) };
         this.view?.webview.postMessage({
           type: 'results',
           data: responseText,
           contentType,
           queryType,
+          prefixes,
         });
       } catch (err: unknown) {
         if (err instanceof Error && err.name === 'AbortError') {
@@ -241,6 +222,24 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
     const yasrJsUri = webview.asWebviewUri(
       vscode.Uri.file(path.join(this.context.extensionPath, 'node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.js')),
     );
+    const graphPluginCssUri = webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(
+          this.context.extensionPath,
+          'node_modules',
+          '@matdata',
+          'yasgui-graph-plugin',
+          'dist',
+          'yasgui-graph-plugin.min.css',
+        ),
+      ),
+    );
+    const yasrPluginsCssUri = webview.asWebviewUri(
+      vscode.Uri.file(path.join(this.context.extensionPath, 'dist', 'panels', 'yasrPlugins.css')),
+    );
+    const yasrPluginsJsUri = webview.asWebviewUri(
+      vscode.Uri.file(path.join(this.context.extensionPath, 'dist', 'panels', 'yasrPlugins.js')),
+    );
     const nonce = getNonce();
     const htmlPath = path.join(this.context.extensionPath, 'src', 'panels', 'queryPanel.html');
     return fs
@@ -248,7 +247,10 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
       .replaceAll('__NONCE__', nonce)
       .replaceAll('__CSP_SOURCE__', webview.cspSource)
       .replaceAll('__YASR_CSS_URI__', yasrCssUri.toString())
-      .replaceAll('__YASR_JS_URI__', yasrJsUri.toString());
+      .replaceAll('__YASR_JS_URI__', yasrJsUri.toString())
+      .replaceAll('__GRAPH_PLUGIN_CSS_URI__', graphPluginCssUri.toString())
+      .replaceAll('__YASR_PLUGINS_CSS_URI__', yasrPluginsCssUri.toString())
+      .replaceAll('__YASR_PLUGINS_JS_URI__', yasrPluginsJsUri.toString());
   }
 
   setActiveBackendUrl(url: string): void {
@@ -268,4 +270,15 @@ export function detectQueryType(query: string): string {
     .trim();
   const match = cleaned.match(/\b(SELECT|CONSTRUCT|DESCRIBE|ASK|INSERT|DELETE)\b/i);
   return match ? match[1].toUpperCase() : 'SELECT';
+}
+
+/** Extract PREFIX declarations from a SPARQL query as a prefix→namespace map. */
+export function extractQueryPrefixes(query: string): Record<string, string> {
+  const prefixes: Record<string, string> = {};
+  const regex = /^\s*PREFIX\s+([\w-]*):\s*<([^>]+)>/gim;
+  let match;
+  while ((match = regex.exec(query)) !== null) {
+    prefixes[match[1]] = match[2];
+  }
+  return prefixes;
 }

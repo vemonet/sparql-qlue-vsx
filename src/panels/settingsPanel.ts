@@ -59,11 +59,63 @@ export class SettingsPanel {
         const backends = state.getBackends();
         delete backends[message.endpointUrl as string];
         await state.setBackends(backends);
+      } else if (message.type === 'resetAll') {
+        const answer = await vscode.window.showWarningMessage(
+          'Reset all SPARQL Qlue settings? This will clear all saved endpoints, backend configurations, and extension settings.',
+          { modal: true },
+          'Reset',
+        );
+        if (answer !== 'Reset') {
+          return;
+        }
+        await state.resetAll();
+        try {
+          await lsServer.updateSettings(state.getSettings());
+        } catch (_) {
+          // best-effort — server may not be running
+        }
+        panel.webview.postMessage({
+          type: 'set',
+          settings: state.getSettings(),
+          endpointBackends: state.getBackends(),
+        });
       }
     });
     panel.onDidDispose(() => {
       SettingsPanel.currentPanel = undefined;
     });
+  }
+
+  private static getSettingsFields(
+    extensionPath: string,
+  ): Record<string, Array<{ key: string; type: string; default: boolean | number; description: string }>> {
+    const pkgPath = path.join(extensionPath, 'package.json');
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    const props = pkg.contributes?.configuration?.properties ?? {};
+    const sections: Record<
+      string,
+      Array<{ key: string; type: string; default: boolean | number; description: string }>
+    > = { format: [], completion: [], prefixes: [] };
+    const PREFIX = 'sparql-qlue.';
+    for (const [fullKey, def] of Object.entries(props) as [string, any][]) {
+      const noPrefix = fullKey.slice(PREFIX.length);
+      const dotIdx = noPrefix.indexOf('.');
+      if (dotIdx === -1) {
+        continue;
+      }
+      const section = noPrefix.slice(0, dotIdx);
+      const key = noPrefix.slice(dotIdx + 1);
+      if (!(section in sections)) {
+        continue;
+      }
+      sections[section].push({
+        key,
+        type: def.type === 'boolean' ? 'bool' : 'number',
+        default: def.default,
+        description: (def.description ?? '').replace(/\.$/, ''),
+      });
+    }
+    return sections;
   }
 
   private static getHtmlForWebview(
@@ -76,12 +128,14 @@ export class SettingsPanel {
     const htmlPath = path.join(extensionPath, 'src', 'panels', 'settingsPanel.html');
     const settingsJson = JSON.stringify(settings ?? {});
     const endpointBackendsJson = JSON.stringify(endpointBackends ?? {});
+    const settingsFieldsJson = JSON.stringify(SettingsPanel.getSettingsFields(extensionPath));
     return fs
       .readFileSync(htmlPath, 'utf8')
       .replace('__CSP_SOURCE__', webview.cspSource)
       .replaceAll('__NONCE__', nonce)
       .replace('__SETTINGS__', () => settingsJson)
-      .replace('__ENDPOINT_BACKENDS__', () => endpointBackendsJson);
+      .replace('__ENDPOINT_BACKENDS__', () => endpointBackendsJson)
+      .replace('__SETTINGS_FIELDS__', () => settingsFieldsJson);
   }
 }
 

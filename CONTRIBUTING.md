@@ -1,6 +1,6 @@
 # Contributing
 
-[![Tests](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml/badge.svg)](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/vemonet/sparql-qlue)](https://open-vsx.org/extension/vemonet/sparql-qlue) [![VS Marketplace](https://img.shields.io/badge/VisualStudio-Marketplace-blue.svg)](https://marketplace.visualstudio.com/items?itemName=vemonet.sparql-qlue) [![Tests](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml/badge.svg)](https://github.com/vemonet/sparql-qlue-vsx/actions/workflows/test.yml)
 
 ## 📥 Install
 
@@ -10,7 +10,7 @@ npm i
 
 ## 🛠️ Development
 
-Press `F5` in VS Code (or use **Run → Start Debugging**) to launch the extension in a new Extension Development Host window.
+Press **`F5`** in VS Code (or use **Run → Start Debugging**) to launch the extension in a new Extension Development Host window.
 
 ### Run tests
 
@@ -32,35 +32,28 @@ npm run upgrade
 
 ## 🏷️ Release
 
-Bump the version in `package.json`: `fix` | `minor` | `major`
+Bump the version in `package.json`: `patch` | `minor` | `major`
 
 ```sh
-npm version fix
+npm version patch
 ```
 
-Then package:
+> This will automatically update the changelog, create a git tag, package, and publish.
 
-```sh
-npm run package
-```
-
-And publish:
-
-```sh
-npm run publish:vsce    # VS Code Marketplace
-npm run publish:ovsx    # Open VSX
-npm run publish:all     # both
-```
-
-> [!WARNING]
+> [!NOTE]
 >
 > Get a VS Code Marketplace PAT from [Azure DevOps](https://dev.azure.com), and an Open VSX token from [open-vsx.org/user-settings/tokens](https://open-vsx.org/user-settings/tokens).
 
 ## 📝 Notes
 
-VSCode Icons: https://code.visualstudio.com/api/references/icons-in-labels
+To do:
 
-VSCode marketplace publisher: https://marketplace.visualstudio.com/manage/
+- [ ] Add a button so users can easily add the current endpoint to the query start with `#+ endpoint:`
+- [ ] Make it so format put all comments `#+` at the start of the query
+
+[Browse VSCode Icons](https://code.visualstudio.com/api/references/icons-in-labels)
+
+[VSCode marketplace publisher manage page](https://marketplace.visualstudio.com/manage/)
 
 Run tests:
 
@@ -75,5 +68,4 @@ Run tests:
 Go further:
 
 - Reduce the extension size and improve the startup time by [bundling your extension](https://code.visualstudio.com/api/working-with-extensions/bundling-extension).
-- [Publish your extension](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) on the VS Code extension marketplace.
 - Automate builds by setting up [Continuous Integration](https://code.visualstudio.com/api/working-with-extensions/continuous-integration).

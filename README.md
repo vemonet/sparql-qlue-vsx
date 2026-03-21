@@ -1,18 +1,18 @@
 # 🫆 SPARQL Qlue
 
-[![VS Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/vemonet.sparql-qlue)](https://marketplace.visualstudio.com/items?itemName=vemonet.sparql-qlue) [![Open VSX Version](https://img.shields.io/open-vsx/v/vemonet/sparql-qlue)](https://open-vsx.org/extension/vemonet/sparql-qlue)
+A Visual Studio Code extension with support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), providing:
 
-A VisualStudio Code extension for working with [SPARQL](https://www.w3.org/TR/sparql12-query/) query files (`.rq`, `.sparql`) providing:
-
-- Syntax highlighting,
-- Diagnostics, completions, formatting, fixes using the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server running via WebAssembly,
-- Execute SPARQL query and inspect results with [YASGUI](https://github.com/rdfjs/Yasgui) YASR component.
+- [x] **Language intelligence**: autocomplete, diagnostics, hover info via the **[qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server
+- [x] **Query quality**: formatting, refactoring, code actions
+- [x] **Syntax highlighting** with comprehensive grammar support
+- [x] **Query execution & results inspection** with the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
+- [x] **Configuration** of the language server
 
 ![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png)
 
-## Language Server
+## 🔧 Language Server
 
-Use the qlue-ls language server compiled to wasm, running in-process.
+Use the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server compiled to WebAssembly, running in-process.
 
 - **Context-aware autocomplete**: suggests subjects, predicates, and objects based on your SPARQL endpoint and the current query context
 - **Hover information**: shows labels and descriptions for IRIs by querying the endpoint
@@ -20,31 +20,26 @@ Use the qlue-ls language server compiled to wasm, running in-process.
 - **Auto-formatting**: formats SPARQL documents
 - **Code actions**: quick fixes for common issues
 
-## Query Execution
+## ▶️ Query Execution
 
 Run the active query with **Ctrl+Enter** / **Cmd+Enter**, the **▶** file header button, or **right-click → Execute SPARQL Query**
 
-Results are displayed in the **SPARQL Results** panel powered by [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
+Results are displayed in the **SPARQL Results** panel using [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
 
-The endpoint URL is resolved from a `#+ endpoint: <url>` comment in the file, or from an `endpoint.txt` file in the same directory or any parent up to the workspace root.
+> [!TIP]
+>
+> The endpoint URL is automatically resolved from a `#+ endpoint: <url>` comment in the file, or from an `endpoint.txt` file in the same directory or any parent up to the workspace root.
 
-## Language Server Settings
+## ⚙️ Settings
 
-Click the gear ⚙️ button in the file header, or **right-click → Configure SPARQL Language Server** to open the settings editor.
+Click the ⚙️ button in the file header, or **right-click → Configure SPARQL Language Server** to open the settings editor.
 
-Settings are persisted to workspace configuration (`sparql-qlue.serverSettings`) and enable to:
+- Language server behavior settings are persisted to workspace settings (`sparql-qlue.`)
 
-- Configure the language server behavior,
-- Configure backends with custom prefixes and completion queries per endpoint.
+- Backends with custom prefixes and completion queries per endpoint stored in global state.
 
 ![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
 
-## Extension Settings
-
-| Setting                    | Default | Description                                                           |
-| -------------------------- | ------- | --------------------------------------------------------------------- |
-| `sparql-qlue.formatOnSave` | `false` | Automatically format SPARQL documents via the language server on save |
-
-## Contributing
+## 🛠️ Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)

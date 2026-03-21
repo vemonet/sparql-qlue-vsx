@@ -46,15 +46,6 @@ export async function findEndpointUrl(document: vscode.TextDocument): Promise<st
   return '';
 }
 
-export function getNonce(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 32; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
 /** Fetch prefixes declared using SHACL vocabulary from a SPARQL endpoint. */
 export async function fetchEndpointPrefixes(endpointUrl: string, timeoutMs = 5000): Promise<Record<string, string>> {
   const query = `PREFIX sh: <http://www.w3.org/ns/shacl#>
@@ -62,10 +53,14 @@ SELECT DISTINCT ?prefix ?namespace WHERE {
   [] sh:namespace ?namespace ; sh:prefix ?prefix .
 } ORDER BY ?prefix`;
   try {
-    const url = new URL(endpointUrl);
-    url.searchParams.set('query', query);
-    const response = await fetch(url.toString(), {
-      headers: { Accept: 'application/sparql-results+json' },
+    const response = await fetch(endpointUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/sparql-query',
+        Accept: 'application/sparql-results+json',
+        'User-Agent': `sparql-qlue/${(require('../package.json') as { version: string }).version}`,
+      },
+      body: query,
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) {
@@ -106,4 +101,14 @@ export function buildPrefixMap(
     }
   }
   return map;
+}
+
+/** Generate a random nonce string. */
+export function getNonce(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 32; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }

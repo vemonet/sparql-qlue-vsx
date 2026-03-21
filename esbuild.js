@@ -71,11 +71,44 @@ async function main() {
     logLevel: 'silent',
     plugins: [copyWasmPlugin, esbuildProblemMatcherPlugin],
   });
+
+  // Browser bundle: YASR plugins (Graph + Geo) registered on window.Yasr
+  // https://www.npmjs.com/package/yasgui-geo-tg
+  // https://www.npmjs.com/package/@matdata/yasgui-graph-plugin
+  const ctxPlugins = await esbuild.context({
+    stdin: {
+      contents: `
+import GraphPlugin from '@matdata/yasgui-graph-plugin';
+import GeoPlugin from 'yasgui-geo-tg';
+const Y = globalThis.Yasr;
+if (Y) {
+  Y.registerPlugin('Graph', GraphPlugin);
+  Y.registerPlugin('Geo', GeoPlugin);
+}`,
+      resolveDir: __dirname,
+      loader: 'js',
+    },
+    bundle: true,
+    format: 'iife',
+    platform: 'browser',
+    minify: production,
+    sourcemap: !production,
+    sourcesContent: false,
+    outfile: 'dist/panels/yasrPlugins.js',
+    // Inline binary assets referenced by CSS (leaflet marker images, etc.)
+    loader: { '.png': 'dataurl', '.gif': 'dataurl', '.svg': 'dataurl' },
+    logLevel: 'silent',
+    plugins: [esbuildProblemMatcherPlugin],
+  });
+
   if (watch) {
     await ctx.watch();
+    await ctxPlugins.watch();
   } else {
     await ctx.rebuild();
     await ctx.dispose();
+    await ctxPlugins.rebuild();
+    await ctxPlugins.dispose();
   }
 }
 

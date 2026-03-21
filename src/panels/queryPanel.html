@@ -4,10 +4,12 @@
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src __CSP_SOURCE__ 'unsafe-inline'; script-src 'nonce-__NONCE__'; font-src __CSP_SOURCE__; img-src __CSP_SOURCE__ data:;"
+      content="default-src 'none'; style-src __CSP_SOURCE__ 'unsafe-inline'; script-src 'nonce-__NONCE__'; font-src __CSP_SOURCE__; img-src __CSP_SOURCE__ data: https://*.tile.openstreetmap.org https://*.tile.opentopomap.org https://server.arcgisonline.com https://*.basemaps.cartocdn.com; connect-src https://epsg.io;"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="__YASR_CSS_URI__" />
+    <link rel="stylesheet" href="__GRAPH_PLUGIN_CSS_URI__" />
+    <link rel="stylesheet" href="__YASR_PLUGINS_CSS_URI__" />
     <style>
       :root {
         --bg: var(--vscode-editor-background);
@@ -229,6 +231,12 @@
       .yasr .yasr_header .yasr_btn:hover,
       .yasr .yasr_header button:hover {
         background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.15)) !important;
+        border-radius: 4px !important;
+      }
+      /* Center first column (row numbers) in YASR table */
+      .yasr table.dataTable tbody td:first-child,
+      .yasr table.dataTable thead th:first-child {
+        text-align: center !important;
       }
       /* Download/copy action buttons */
       .yasr .yasr_downloadIcon,
@@ -286,6 +294,13 @@
         white-space: pre-wrap;
         word-break: break-all;
       }
+      /* Truncate long cell values (e.g. long URIs) to avoid horizontal scroll */
+      .yasr table.dataTable tbody td {
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -307,6 +322,7 @@
     <div id="results"></div>
 
     <script nonce="__NONCE__" src="__YASR_JS_URI__"></script>
+    <script nonce="__NONCE__" src="__YASR_PLUGINS_JS_URI__"></script>
     <script nonce="__NONCE__">
       const vscode = acquireVsCodeApi();
       const endpointInput = document.getElementById('endpointInput');
@@ -499,7 +515,7 @@
           case 'results':
             setExecuting(false);
             clearStatus();
-            displayResults(msg.data, msg.contentType, msg.queryType);
+            displayResults(msg.data, msg.contentType, msg.queryType, msg.prefixes || {});
             break;
 
           case 'error':
@@ -525,47 +541,21 @@
         }
       });
 
-      function displayResults(data, contentType, queryType) {
+      function displayResults(data, contentType, queryType, prefixes) {
         resultsDiv.innerHTML = '';
-
-        if (contentType.includes('sparql-results+json')) {
-          // SELECT / ASK results — use YASR table
-          try {
-            yasrInstance = new Yasr(resultsDiv, {
-              pluginOrder: ['table', 'response'],
-              defaultPlugin: 'table',
-            });
-            yasrInstance.setResponse({
-              data: data,
-              contentType: 'application/sparql-results+json',
-              status: 200,
-              executionTime: 0,
-            });
-          } catch (e) {
-            resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
-          }
-        } else if (
-          contentType.includes('turtle') ||
-          contentType.includes('n-triples') ||
-          contentType.includes('ld+json') ||
-          contentType.includes('rdf+xml')
-        ) {
-          // CONSTRUCT / DESCRIBE results — show via YASR response plugin
-          try {
-            yasrInstance = new Yasr(resultsDiv, {
-              pluginOrder: ['response'],
-              defaultPlugin: 'response',
-            });
-            yasrInstance.setResponse({
-              data: data,
-              contentType: contentType,
-              status: 200,
-              executionTime: 0,
-            });
-          } catch (e) {
-            resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
-          }
-        } else {
+        try {
+          yasrInstance = new Yasr(resultsDiv, {
+            pluginOrder: ['table', 'Graph', 'Geo', 'response'],
+            defaultPlugin: 'table',
+            prefixes: prefixes,
+          });
+          yasrInstance.setResponse({
+            data: data,
+            contentType: contentType,
+            status: 200,
+            executionTime: 0,
+          });
+        } catch (e) {
           resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
         }
       }

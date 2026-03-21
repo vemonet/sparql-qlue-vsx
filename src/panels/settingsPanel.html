@@ -206,6 +206,21 @@
         color: var(--desc-fg);
         margin: 4px 0 6px;
       }
+      .section-hint {
+        font-size: 0.82em;
+        color: var(--desc-fg);
+        margin: 0 0 10px;
+        line-height: 1.5;
+      }
+      .section-hint code {
+        font-family: var(--vscode-editor-font-family, monospace);
+        background: var(--vscode-textCodeBlock-background, rgba(128, 128, 128, 0.15));
+        padding: 0 3px;
+        border-radius: 3px;
+      }
+      .section-hint a {
+        color: var(--vscode-textLink-foreground);
+      }
       .endpoint-subsection-title.collapsible {
         display: flex;
         align-items: center;
@@ -406,6 +421,23 @@
         background: var(--button-hover);
       }
 
+      /* Reset all button */
+      .reset-all-btn {
+        background: none;
+        color: var(--vscode-errorForeground, #f48771);
+        border: 1px solid var(--vscode-errorForeground, #f48771);
+        border-radius: 4px;
+        padding: 5px 14px;
+        margin: 12px 0 0;
+        font-size: 0.85em;
+        cursor: pointer;
+        opacity: 0.8;
+      }
+      .reset-all-btn:hover {
+        opacity: 1;
+        background: rgba(244, 135, 113, 0.1);
+      }
+
       /* Acknowledgements */
       .ack {
         font-size: 0.85em;
@@ -439,10 +471,17 @@
     <h2>Prefixes</h2>
     <div class="section" id="pfx-section"></div>
 
+    <button
+      id="reset-all-btn"
+      class="reset-all-btn"
+      title="Reset all saved endpoints, backends, and extension settings to their defaults"
+    >
+      ↺ Reset all settings
+    </button>
     <h2>Acknowledgements</h2>
     <p class="ack">
       Diagnostics, autocomplete, and formatting powered by the
-      <a href="https://github.com/IoannisNezis/Qlue-ls">qlue-ls</a> language server running via WebAssembly.
+      <b><a href="https://github.com/IoannisNezis/Qlue-ls">qlue-ls</a></b> language server running via WebAssembly.
     </p>
     <p class="ack">
       Query execution and results display using the
@@ -454,92 +493,40 @@
       const initial = __SETTINGS__;
       const initialEndpointBackends = __ENDPOINT_BACKENDS__;
 
-      const FIELDS = {
-        fmt: [
-          ['alignPredicates', 'bool', 'alignPredicates', 'Align triple predicates in a column'],
-          ['alignPrefixes', 'bool', 'alignPrefixes', 'Align PREFIX declarations in a column'],
-          ['separatePrologue', 'bool', 'separatePrologue', 'Blank line between prologue and query body'],
-          ['capitalizeKeywords', 'bool', 'capitalizeKeywords', 'Uppercase SPARQL keywords (SELECT, WHERE, …)'],
-          ['insertSpaces', 'bool', 'insertSpaces', 'Indent with spaces (off = tabs)'],
-          ['tabSize', 'number', 'tabSize', 'Number of spaces per indentation level'],
-          ['whereNewLine', 'bool', 'whereNewLine', 'Place WHERE clause on its own line'],
-          ['filterSameLine', 'bool', 'filterSameLine', 'Keep FILTER on the same line as its block'],
-          ['lineLength', 'number', 'lineLength', 'Target line length for wrapping'],
-          ['contractTriples', 'bool', 'contractTriples', 'Use ; notation to contract triples with the same subject'],
-          ['keepEmptyLines', 'bool', 'keepEmptyLines', 'Preserve intentional blank lines from the original source'],
-        ],
-        cmp: [
-          ['timeoutMs', 'number', 'timeoutMs', 'SPARQL query timeout for completion requests (ms)'],
-          ['resultSizeLimit', 'number', 'resultSizeLimit', 'Maximum number of completion items returned'],
-          [
-            'subjectCompletionTriggerLength',
-            'number',
-            'subjectCompletionTriggerLength',
-            'Minimum typed characters before subject completion fires',
-          ],
-          [
-            'objectCompletionSuffix',
-            'bool',
-            'objectCompletionSuffix',
-            'Append a trailing space/dot after inserting an object completion',
-          ],
-          ['variableCompletionLimit', 'number', 'variableCompletionLimit', 'Maximum variable completion suggestions'],
-          [
-            'sameSubjectSemicolon',
-            'bool',
-            'sameSubjectSemicolon',
-            'Use semicolon notation when completing predicates for a repeated subject',
-          ],
-        ],
-        pfx: [
-          ['addMissing', 'bool', 'addMissing', 'Automatically insert missing PREFIX declarations'],
-          ['removeUnused', 'bool', 'removeUnused', 'Remove PREFIX declarations that are not used in the query'],
-        ],
-      };
+      // Field definitions injected from package.json at panel load time
+      const settings = __SETTINGS_FIELDS__;
 
       // Map from section id prefix → TOML key
       const SECTION_KEYS = { fmt: 'format', cmp: 'completion', pfx: 'prefixes' };
 
+      // FIELDS[sectionPrefix] = [[key, type, description], ...]
+      const FIELDS = {
+        fmt: settings.format.map((f) => [f.key, f.type, f.description]),
+        cmp: settings.completion.map((f) => [f.key, f.type, f.description]),
+        pfx: settings.prefixes.map((f) => [f.key, f.type, f.description]),
+      };
+
       const DEFAULTS = {
-        format: {
-          alignPredicates: false,
-          alignPrefixes: false,
-          separatePrologue: true,
-          capitalizeKeywords: true,
-          insertSpaces: true,
-          tabSize: 2,
-          whereNewLine: false,
-          filterSameLine: true,
-          lineLength: 120,
-          contractTriples: false,
-          keepEmptyLines: false,
-        },
-        completion: {
-          timeoutMs: 10000,
-          resultSizeLimit: 50,
-          subjectCompletionTriggerLength: 3,
-          objectCompletionSuffix: true,
-          variableCompletionLimit: 10,
-          sameSubjectSemicolon: true,
-        },
-        prefixes: { addMissing: true, removeUnused: false },
+        format: Object.fromEntries(settings.format.map((f) => [f.key, f.default])),
+        completion: Object.fromEntries(settings.completion.map((f) => [f.key, f.default])),
+        prefixes: Object.fromEntries(settings.prefixes.map((f) => [f.key, f.default])),
       };
 
       function renderSection(sectionPrefix) {
         const container = document.getElementById(`${sectionPrefix}-section`);
         const tomlKey = SECTION_KEYS[sectionPrefix];
         const values = Object.assign({}, DEFAULTS[tomlKey], (initial || {})[tomlKey] || {});
-        for (const [id, type, tomlField, desc] of FIELDS[sectionPrefix]) {
-          const val = values[tomlField];
+        for (const [key, type, desc] of FIELDS[sectionPrefix]) {
+          const val = values[key];
           const row = document.createElement('div');
           row.className = 'row';
           const control =
             type === 'bool'
-              ? `<label class="toggle"><input type="checkbox" id="${sectionPrefix}_${id}" ${val ? 'checked' : ''}><span class="toggle-slider"></span></label>`
-              : `<input type="number" id="${sectionPrefix}_${id}" value="${val ?? 0}">`;
+              ? `<label class="toggle"><input type="checkbox" id="${sectionPrefix}_${key}" ${val ? 'checked' : ''}><span class="toggle-slider"></span></label>`
+              : `<input type="number" id="${sectionPrefix}_${key}" value="${val ?? 0}">`;
           row.innerHTML = `
           <div class="label">
-            <div class="label-name">${tomlField}</div>
+            <div class="label-name">${key}</div>
             <div class="label-desc">${desc}</div>
           </div>
           <div class="control">${control}</div>`;
@@ -774,7 +761,12 @@
 
           // Queries sub-section
           const qSection = document.createElement('div');
-          qSection.innerHTML = '<div class="endpoint-subsection-title">Completion &amp; Hover Queries</div>';
+          qSection.innerHTML = `<div class="endpoint-subsection-title">Completion &amp; Hover Queries</div>
+          <p class="section-hint">These SPARQL queries are sent to the endpoint to power autocompletion and hover info.
+            They use <a href="https://jinja.palletsprojects.com/en/stable/templates/" target="_blank">Jinja2 template syntax</a>
+            — variables like <code>{{ search_term }}</code>, <code>{{ context }}</code>, and <code>{{ local_context }}</code>
+            are filled in automatically at runtime. Results must be bound to <code>?qlue_ls_entity</code> (required),
+            <code>?qlue_ls_label</code> (optional display name), and <code>?qlue_ls_score</code> or <code>?qlue_ls_count</code> (optional ranking).</p>`;
           const queriesContainer = document.createElement('div');
           qSection.appendChild(queriesContainer);
 
@@ -817,7 +809,6 @@
       }
 
       renderEndpoints(endpointBackends);
-
       renderSection('fmt');
       renderSection('cmp');
       renderSection('pfx');
@@ -825,10 +816,10 @@
       function readSection(sectionPrefix) {
         const tomlKey = SECTION_KEYS[sectionPrefix];
         const out = {};
-        for (const [id, type, tomlField] of FIELDS[sectionPrefix]) {
-          const el = document.getElementById(`${sectionPrefix}_${id}`);
+        for (const [key, type] of FIELDS[sectionPrefix]) {
+          const el = document.getElementById(`${sectionPrefix}_${key}`);
           if (!el) continue;
-          out[tomlField] = type === 'bool' ? el.checked : Number(el.value);
+          out[key] = type === 'bool' ? el.checked : Number(el.value);
         }
         return out;
       }
@@ -836,11 +827,11 @@
       function applySettings(s) {
         for (const [prefix, tomlKey] of Object.entries(SECTION_KEYS)) {
           const sec = (s || {})[tomlKey] || {};
-          for (const [id, type, tomlField] of FIELDS[prefix]) {
-            const el = document.getElementById(`${prefix}_${id}`);
-            if (!el || !(tomlField in sec)) continue;
-            if (type === 'bool') el.checked = Boolean(sec[tomlField]);
-            else el.value = String(sec[tomlField]);
+          for (const [key, type] of FIELDS[prefix]) {
+            const el = document.getElementById(`${prefix}_${key}`);
+            if (!el || !(key in sec)) continue;
+            if (type === 'bool') el.checked = Boolean(sec[key]);
+            else el.value = String(sec[key]);
           }
         }
       }
@@ -870,12 +861,18 @@
         el.addEventListener('input', scheduleAutoSave);
       });
 
+      document.getElementById('reset-all-btn').addEventListener('click', () => {
+        vscode.postMessage({ type: 'resetAll' });
+      });
+
       // Accept settings pushed from the extension when the panel is revealed
       window.addEventListener('message', (event) => {
         const msg = event.data;
         if (msg.type === 'set') {
           if (msg.settings) applySettings(msg.settings);
           if (msg.endpointBackends) {
+            // Replace endpointBackends in place
+            for (const key of Object.keys(endpointBackends)) delete endpointBackends[key];
             Object.assign(endpointBackends, msg.endpointBackends);
             renderEndpoints(endpointBackends);
           }
