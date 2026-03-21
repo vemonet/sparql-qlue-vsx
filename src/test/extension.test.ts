@@ -42,12 +42,7 @@ suite('Extension SPARQL language recognition', () => {
   });
 
   test("opening the test query.rq fixture has languageId 'sparql'", async () => {
-    const uri = vscode.Uri.joinPath(
-      vscode.extensions.getExtension(EXTENSION_ID)!.extensionUri,
-      'src',
-      'resources',
-      'query.rq',
-    );
+    const uri = vscode.Uri.joinPath(vscode.extensions.getExtension(EXTENSION_ID)!.extensionUri, 'docs', 'query.rq');
     const doc = await vscode.workspace.openTextDocument(uri);
     assert.strictEqual(doc.languageId, 'sparql');
   });

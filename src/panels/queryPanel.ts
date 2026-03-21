@@ -276,7 +276,7 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
       __YASR_PLUGINS_CSS_URI__: extUri('dist', 'panels', 'yasrPlugins.css'),
       __YASR_PLUGINS_JS_URI__: extUri('dist', 'panels', 'yasrPlugins.js'),
     };
-    const htmlPath = path.join(this.context.extensionPath, 'src', 'panels', 'queryPanel.html');
+    const htmlPath = path.join(this.context.extensionPath, 'dist', 'panels', 'queryPanel.html');
     return fs.readFileSync(htmlPath, 'utf8').replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
   }
 

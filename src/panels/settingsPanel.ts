@@ -131,7 +131,7 @@ export class SettingsPanel {
       __ENDPOINT_BACKENDS__: JSON.stringify(endpointBackends ?? {}),
       __SETTINGS_FIELDS__: JSON.stringify(SettingsPanel.getSettingsFields(extensionPath)),
     };
-    const htmlPath = path.join(extensionPath, 'src', 'panels', 'settingsPanel.html');
+    const htmlPath = path.join(extensionPath, 'dist', 'panels', 'settingsPanel.html');
     return fs.readFileSync(htmlPath, 'utf8').replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
   }
 }

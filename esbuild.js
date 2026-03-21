@@ -53,6 +53,14 @@ const copyWasmPlugin = {
         fs.copyFileSync(settingsSrc, settingsDest);
         console.log('[html] copied settingsPanel.html to dist/');
       }
+      // Copy static resources (themes, grammar) to dist/resources/
+      const resourcesSrc = path.resolve(__dirname, 'src/resources');
+      const resourcesDest = path.resolve(__dirname, 'dist/resources');
+      fs.mkdirSync(resourcesDest, { recursive: true });
+      for (const file of fs.readdirSync(resourcesSrc)) {
+        fs.copyFileSync(path.join(resourcesSrc, file), path.join(resourcesDest, file));
+      }
+      console.log('[resources] copied src/resources to dist/resources/');
     });
   },
 };

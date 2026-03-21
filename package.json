@@ -62,19 +62,19 @@
       {
         "language": "sparql",
         "scopeName": "source.sparql",
-        "path": "./src/resources/sparql.tmLanguage.json"
+        "path": "./dist/resources/sparql.tmLanguage.json"
       }
     ],
     "themes": [
       {
         "label": "SPARQL Dark",
         "uiTheme": "vs-dark",
-        "path": "./src/resources/sparql-dark.json"
+        "path": "./dist/resources/sparql-dark.json"
       },
       {
         "label": "SPARQL Light",
         "uiTheme": "vs",
-        "path": "./src/resources/sparql-light.json"
+        "path": "./dist/resources/sparql-light.json"
       }
     ],
     "viewsContainers": {
