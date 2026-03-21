@@ -1,6 +1,21 @@
 # 📜 Changelog
 
-## [0.0.2](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.1..0.0.2) - 2026-03-21
+## [0.0.3](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.2..v0.0.3) - 2026-03-21
+
+### 🐛 Bug Fixes
+
+- Fix import paths from src to dist - ([88af67c](https://github.com/vemonet/sparql-qlue-vsx/commit/88af67c12adebe09b889d993daf92508f16a1a19))
+
+### 📚 Documentation
+
+- Update icon - ([b96faf6](https://github.com/vemonet/sparql-qlue-vsx/commit/b96faf62d725eb41996e999796f8d3af8b17e6c1))
+
+### 🚜 Refactor
+
+- Improve webviews static imports and fix tag in publish workflow - ([7041751](https://github.com/vemonet/sparql-qlue-vsx/commit/70417518681e9b84f2f11b05a1585499c5e6240d))
+- Improve endpoints list rendering - ([9789855](https://github.com/vemonet/sparql-qlue-vsx/commit/9789855d6b0470cdef4154d52b35c533ffa05184))
+
+## [0.0.2](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.1..v0.0.2) - 2026-03-21
 
 ### ⚙️ Continuous Integration
 
