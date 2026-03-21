@@ -124,18 +124,15 @@ export class SettingsPanel {
     settings: any,
     endpointBackends: Record<string, BackendConfig>,
   ): string {
-    const nonce = getNonce();
+    const replacements: Record<string, string> = {
+      __NONCE__: getNonce(),
+      __CSP_SOURCE__: webview.cspSource,
+      __SETTINGS__: JSON.stringify(settings ?? {}),
+      __ENDPOINT_BACKENDS__: JSON.stringify(endpointBackends ?? {}),
+      __SETTINGS_FIELDS__: JSON.stringify(SettingsPanel.getSettingsFields(extensionPath)),
+    };
     const htmlPath = path.join(extensionPath, 'src', 'panels', 'settingsPanel.html');
-    const settingsJson = JSON.stringify(settings ?? {});
-    const endpointBackendsJson = JSON.stringify(endpointBackends ?? {});
-    const settingsFieldsJson = JSON.stringify(SettingsPanel.getSettingsFields(extensionPath));
-    return fs
-      .readFileSync(htmlPath, 'utf8')
-      .replace('__CSP_SOURCE__', webview.cspSource)
-      .replaceAll('__NONCE__', nonce)
-      .replace('__SETTINGS__', () => settingsJson)
-      .replace('__ENDPOINT_BACKENDS__', () => endpointBackendsJson)
-      .replace('__SETTINGS_FIELDS__', () => settingsFieldsJson);
+    return fs.readFileSync(htmlPath, 'utf8').replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
   }
 }
 

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { randomBytes } from 'crypto';
 import { DEFAULT_PREFIX_MAP } from './state';
 
 /**
@@ -103,12 +104,7 @@ export function buildPrefixMap(
   return map;
 }
 
-/** Generate a random nonce string. */
+/** Generate a cryptographically secure nonce string. */
 export function getNonce(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 32; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  return randomBytes(16).toString('hex');
 }

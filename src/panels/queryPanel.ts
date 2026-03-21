@@ -214,43 +214,25 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
   }
 
   private getWebviewContent(webview: vscode.Webview): string {
-    const yasrCssUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(this.context.extensionPath, 'node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.css'),
+    const extUri = (...segments: string[]) =>
+      webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, ...segments))).toString();
+    const replacements: Record<string, string> = {
+      __NONCE__: getNonce(),
+      __CSP_SOURCE__: webview.cspSource,
+      __YASR_CSS_URI__: extUri('node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.css'),
+      __YASR_JS_URI__: extUri('node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.js'),
+      __GRAPH_PLUGIN_CSS_URI__: extUri(
+        'node_modules',
+        '@matdata',
+        'yasgui-graph-plugin',
+        'dist',
+        'yasgui-graph-plugin.min.css',
       ),
-    );
-    const yasrJsUri = webview.asWebviewUri(
-      vscode.Uri.file(path.join(this.context.extensionPath, 'node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.js')),
-    );
-    const graphPluginCssUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          this.context.extensionPath,
-          'node_modules',
-          '@matdata',
-          'yasgui-graph-plugin',
-          'dist',
-          'yasgui-graph-plugin.min.css',
-        ),
-      ),
-    );
-    const yasrPluginsCssUri = webview.asWebviewUri(
-      vscode.Uri.file(path.join(this.context.extensionPath, 'dist', 'panels', 'yasrPlugins.css')),
-    );
-    const yasrPluginsJsUri = webview.asWebviewUri(
-      vscode.Uri.file(path.join(this.context.extensionPath, 'dist', 'panels', 'yasrPlugins.js')),
-    );
-    const nonce = getNonce();
+      __YASR_PLUGINS_CSS_URI__: extUri('dist', 'panels', 'yasrPlugins.css'),
+      __YASR_PLUGINS_JS_URI__: extUri('dist', 'panels', 'yasrPlugins.js'),
+    };
     const htmlPath = path.join(this.context.extensionPath, 'src', 'panels', 'queryPanel.html');
-    return fs
-      .readFileSync(htmlPath, 'utf8')
-      .replaceAll('__NONCE__', nonce)
-      .replaceAll('__CSP_SOURCE__', webview.cspSource)
-      .replaceAll('__YASR_CSS_URI__', yasrCssUri.toString())
-      .replaceAll('__YASR_JS_URI__', yasrJsUri.toString())
-      .replaceAll('__GRAPH_PLUGIN_CSS_URI__', graphPluginCssUri.toString())
-      .replaceAll('__YASR_PLUGINS_CSS_URI__', yasrPluginsCssUri.toString())
-      .replaceAll('__YASR_PLUGINS_JS_URI__', yasrPluginsJsUri.toString());
+    return fs.readFileSync(htmlPath, 'utf8').replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
   }
 
   setActiveBackendUrl(url: string): void {

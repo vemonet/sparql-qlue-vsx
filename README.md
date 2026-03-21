@@ -1,12 +1,12 @@
 # 🫆 SPARQL Qlue
 
-A Visual Studio Code extension with support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), providing:
+A Visual Studio Code extension with support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), using the **[qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server, providing:
 
-- [x] **Language intelligence**: autocomplete, diagnostics, hover info via the **[qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server
-- [x] **Query quality**: formatting, refactoring, code actions
-- [x] **Syntax highlighting** with comprehensive grammar support
-- [x] **Query execution & results inspection** with the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
-- [x] **Configuration** of the language server
+- **Language intelligence**: autocomplete, diagnostics, hover info
+- **Query quality**: formatting, refactoring, code actions
+- **Syntax highlighting**
+- **Query execution & results inspection** with the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
+- **Configuration** of the language server
 
 ![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png)
 
@@ -31,16 +31,13 @@ Results are displayed in the **SPARQL Results** panel using [YASGUI](https://git
 
 ![Screenshot geo query](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-geo.png)
 
-> [!TIP]
->
 > The endpoint URL is automatically resolved from a `#+ endpoint: <url>` comment in the file, or from an `endpoint.txt` file in the same directory or any parent up to the workspace root.
 
-## ⚙️ Settings
+## ⚙️ Configuration
 
 Click the ⚙️ button in the file header, or **right-click → Configure SPARQL Language Server** to open the settings editor.
 
 - Language server behavior settings are persisted to workspace settings (`sparql-qlue.`)
-
 - Backends with custom prefixes and completion queries per endpoint stored in global state.
 
 ![Screenshot settings](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)

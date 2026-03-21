@@ -244,32 +244,37 @@
         filter: var(--vscode-editor-background, none) invert(1) brightness(2);
       }
       /* Dark theme YASR fixes */
-      body[data-vscode-theme-kind='vscode-dark'] .yasr .yasr_btn,
-      body[data-vscode-theme-kind='vscode-high-contrast'] .yasr .yasr_btn {
+      body:is([data-vscode-theme-kind='vscode-dark'], [data-vscode-theme-kind='vscode-high-contrast']) .yasr .yasr_btn {
         color: var(--fg) !important;
         fill: var(--fg) !important;
       }
-      body[data-vscode-theme-kind='vscode-dark'] .yasr .yasr_btn:not(.disabled):hover,
-      body[data-vscode-theme-kind='vscode-high-contrast'] .yasr .yasr_btn:not(.disabled):hover {
+      body:is([data-vscode-theme-kind='vscode-dark'], [data-vscode-theme-kind='vscode-high-contrast'])
+        .yasr
+        .yasr_btn:not(.disabled):hover {
         color: var(--vscode-foreground, #fff) !important;
         fill: var(--vscode-foreground, #fff) !important;
       }
-      body[data-vscode-theme-kind='vscode-dark'] .yasr .yasr_btn.selected,
-      body[data-vscode-theme-kind='vscode-dark'] .yasr .yasr_btn:focus,
-      body[data-vscode-theme-kind='vscode-high-contrast'] .yasr .yasr_btn.selected,
-      body[data-vscode-theme-kind='vscode-high-contrast'] .yasr .yasr_btn:focus {
+      body:is([data-vscode-theme-kind='vscode-dark'], [data-vscode-theme-kind='vscode-high-contrast'])
+        .yasr
+        .yasr_btn.selected,
+      body:is([data-vscode-theme-kind='vscode-dark'], [data-vscode-theme-kind='vscode-high-contrast'])
+        .yasr
+        .yasr_btn:focus {
         color: var(--vscode-textLink-foreground, #4da2f5) !important;
         fill: var(--vscode-textLink-foreground, #4da2f5) !important;
       }
       /* Fix CodeMirror overflow gradient (Response tab "show more" fade) */
-      body[data-vscode-theme-kind='vscode-dark'] .yasr .yasr_results .CodeMirror.overflow:before,
-      body[data-vscode-theme-kind='vscode-high-contrast'] .yasr .yasr_results .CodeMirror.overflow:before {
+      body:is([data-vscode-theme-kind='vscode-dark'], [data-vscode-theme-kind='vscode-high-contrast'])
+        .yasr
+        .yasr_results
+        .CodeMirror.overflow:before {
         background: linear-gradient(transparent, var(--input-bg, #1e1e1e) 75%) !important;
       }
       /* Fix overlay content & expand button background */
-      body[data-vscode-theme-kind='vscode-dark'] .yasr .yasr_results .overlay_content,
-      body[data-vscode-theme-kind='vscode-high-contrast'] .yasr .yasr_results .overlay_content {
-        background: transparent !important;
+      body:is([data-vscode-theme-kind='vscode-dark'], [data-vscode-theme-kind='vscode-high-contrast'])
+        .yasr
+        .yasr_results
+        .overlay_content {
         background: linear-gradient(
           90deg,
           transparent,
@@ -278,8 +283,10 @@
           transparent
         ) !important;
       }
-      body[data-vscode-theme-kind='vscode-dark'] .yasr .yasr_results .yasr_btn.overlay_btn,
-      body[data-vscode-theme-kind='vscode-high-contrast'] .yasr .yasr_results .yasr_btn.overlay_btn {
+      body:is([data-vscode-theme-kind='vscode-dark'], [data-vscode-theme-kind='vscode-high-contrast'])
+        .yasr
+        .yasr_results
+        .yasr_btn.overlay_btn {
         background: var(--input-bg) !important;
         border-color: var(--vscode-textLink-foreground, #4da2f5) !important;
         color: var(--vscode-textLink-foreground, #4da2f5) !important;
