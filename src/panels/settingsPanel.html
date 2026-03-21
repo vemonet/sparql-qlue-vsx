@@ -424,18 +424,19 @@
       /* Reset all button */
       .reset-all-btn {
         background: none;
-        color: var(--vscode-errorForeground, #f48771);
-        border: 1px solid var(--vscode-errorForeground, #f48771);
+        color: var(--input-border);
+        border: 1px solid var(--input-border);
         border-radius: 4px;
         padding: 5px 14px;
         margin: 12px 0 0;
         font-size: 0.85em;
         cursor: pointer;
-        opacity: 0.8;
+        opacity: 0.5;
       }
       .reset-all-btn:hover {
-        opacity: 1;
-        background: rgba(244, 135, 113, 0.1);
+        opacity: 0.9;
+        color: var(--desc-fg);
+        border-color: var(--desc-fg);
       }
 
       /* Acknowledgements */
@@ -476,7 +477,7 @@
       class="reset-all-btn"
       title="Reset all saved endpoints, backends, and extension settings to their defaults"
     >
-      ↺ Reset all settings
+      ↺ Reset settings
     </button>
     <h2>Acknowledgements</h2>
     <p class="ack">

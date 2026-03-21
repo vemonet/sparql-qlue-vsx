@@ -48,12 +48,8 @@ npm version patch
 
 To do:
 
+- [ ] Use [semantic tokens](https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide)
 - [ ] Make it so format put all comments `#+` at the start of the query (qlue-ls)
-- [ ] Add support for RDF files? e.g. with [SemanticWebLanguageServer/swls](https://github.com/SemanticWebLanguageServer/swls)
-
-[Browse VSCode Icons](https://code.visualstudio.com/api/references/icons-in-labels)
-
-[VSCode marketplace publisher manage page](https://marketplace.visualstudio.com/manage/)
 
 Run tests:
 
@@ -66,6 +62,9 @@ Run tests:
   - You can create folders inside the `test` folder to structure your tests any way you want.
 
 Go further:
+
+- [Browse VSCode Icons](https://code.visualstudio.com/api/references/icons-in-labels)
+- [VSCode marketplace publisher manage page](https://marketplace.visualstudio.com/manage/)
 
 - Reduce the extension size and improve the startup time by [bundling your extension](https://code.visualstudio.com/api/working-with-extensions/bundling-extension).
 - Automate builds by setting up [Continuous Integration](https://code.visualstudio.com/api/working-with-extensions/continuous-integration).

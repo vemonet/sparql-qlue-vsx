@@ -299,7 +299,7 @@
     "upgrade": "npx npm-check-updates -u",
     "changelog": "git cliff -o CHANGELOG.md --tag v$(npm pkg get version | tr -d \\\")",
     "version": "npm run package && npm run changelog && git add CHANGELOG.md",
-    "postversion": "npm-run-all -p publish:*",
+    "postversion": "git push origin v$(npm pkg get version | tr -d \\\") && npm-run-all -p publish:*",
     "publish:vsce": "vsce package && vsce publish",
     "publish:ovsx": "ovsx publish"
   },

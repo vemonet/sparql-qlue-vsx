@@ -49,10 +49,7 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
     this.view = webviewView;
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [
-        vscode.Uri.file(path.join(this.context.extensionPath, 'node_modules')),
-        vscode.Uri.file(path.join(this.context.extensionPath, 'dist')),
-      ],
+      localResourceRoots: [vscode.Uri.file(path.join(this.context.extensionPath, 'dist'))],
     };
     webviewView.webview.html = this.getWebviewContent(webviewView.webview);
     webviewView.webview.onDidReceiveMessage((msg) => this.handleMessage(msg), undefined, this.context.subscriptions);
@@ -264,15 +261,9 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
     const replacements: Record<string, string> = {
       __NONCE__: getNonce(),
       __CSP_SOURCE__: webview.cspSource,
-      __YASR_CSS_URI__: extUri('node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.css'),
-      __YASR_JS_URI__: extUri('node_modules', '@zazuko', 'yasr', 'build', 'yasr.min.js'),
-      __GRAPH_PLUGIN_CSS_URI__: extUri(
-        'node_modules',
-        '@matdata',
-        'yasgui-graph-plugin',
-        'dist',
-        'yasgui-graph-plugin.min.css',
-      ),
+      __YASR_CSS_URI__: extUri('dist', 'panels', 'yasr.min.css'),
+      __YASR_JS_URI__: extUri('dist', 'panels', 'yasr.min.js'),
+      __GRAPH_PLUGIN_CSS_URI__: extUri('dist', 'panels', 'yasgui-graph-plugin.min.css'),
       __YASR_PLUGINS_CSS_URI__: extUri('dist', 'panels', 'yasrPlugins.css'),
       __YASR_PLUGINS_JS_URI__: extUri('dist', 'panels', 'yasrPlugins.js'),
     };

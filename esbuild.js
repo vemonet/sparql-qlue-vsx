@@ -47,6 +47,22 @@ const copyWasmPlugin = {
         fs.copyFileSync(htmlSrc, htmlDest);
         console.log('[html] copied queryPanel.html to dist/');
       }
+      // Copy YASR and graph-plugin pre-built files so they are included in the packaged extension
+      const yasrBuild = path.resolve(__dirname, 'node_modules/@zazuko/yasr/build');
+      for (const file of ['yasr.min.js', 'yasr.min.css']) {
+        const src = path.join(yasrBuild, file);
+        if (fs.existsSync(src)) {
+          fs.copyFileSync(src, path.join(panelsDist, file));
+          console.log(`[yasr] copied ${file} to dist/panels/`);
+        }
+      }
+      const graphPluginDist = path.resolve(__dirname, 'node_modules/@matdata/yasgui-graph-plugin/dist');
+      const graphCss = 'yasgui-graph-plugin.min.css';
+      const graphCssSrc = path.join(graphPluginDist, graphCss);
+      if (fs.existsSync(graphCssSrc)) {
+        fs.copyFileSync(graphCssSrc, path.join(panelsDist, graphCss));
+        console.log(`[graph-plugin] copied ${graphCss} to dist/panels/`);
+      }
       const settingsSrc = path.resolve(__dirname, 'src/panels/settingsPanel.html');
       const settingsDest = path.resolve(__dirname, 'dist/panels/settingsPanel.html');
       if (fs.existsSync(settingsSrc)) {

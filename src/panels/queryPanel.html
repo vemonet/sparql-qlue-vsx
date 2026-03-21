@@ -615,6 +615,7 @@
             executionTime: 0,
           });
         } catch (e) {
+          console.error('Error rendering results with YASR:', e);
           resultsDiv.innerHTML = '<pre class="raw-results">' + escapeHtml(data) + '</pre>';
         }
       }
