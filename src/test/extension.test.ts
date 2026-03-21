@@ -45,7 +45,7 @@ suite('Extension SPARQL language recognition', () => {
     const uri = vscode.Uri.joinPath(
       vscode.extensions.getExtension(EXTENSION_ID)!.extensionUri,
       'src',
-      'test',
+      'resources',
       'query.rq',
     );
     const doc = await vscode.workspace.openTextDocument(uri);
