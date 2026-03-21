@@ -26,8 +26,8 @@ Run the active query with **Ctrl+Enter** / **Cmd+Enter**, the **▶** file heade
 
 Results are displayed in the **SPARQL Results** panel using [YASGUI](https://github.com/rdfjs/Yasgui) YASR component, with plugins for:
 
-- Graph visualization of `CONSTRUCT` query results
-- Map visualization of Geo SPARQL results
+- [Graph visualization](https://www.npmjs.com/package/@matdata/yasgui-graph-plugin) of `CONSTRUCT` query results
+- [Map visualization](https://www.npmjs.com/package/yasgui-geo-tg) of Geo SPARQL results
 
 ![Screenshot geo query](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-geo.png)
 
@@ -37,8 +37,8 @@ Results are displayed in the **SPARQL Results** panel using [YASGUI](https://git
 
 Click the ⚙️ button in the file header, or **right-click → Configure SPARQL Language Server** to open the settings editor.
 
-- Language server behavior settings are persisted to workspace settings (`sparql-qlue.`)
-- Backends with custom prefixes and completion queries per endpoint stored in global state.
+- Language server general settings are persisted to the workspace settings (`sparql-qlue.`),
+- Endpoints backends with custom prefixes and completion queries stored per endpoint in global state.
 
 ![Screenshot settings](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
 

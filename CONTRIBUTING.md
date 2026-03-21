@@ -48,8 +48,12 @@ npm version patch
 
 To do:
 
-- [ ] Add a button so users can easily add the current endpoint to the query file start with `#+ endpoint:`
-- [ ] Make it so format put all comments `#+` at the start of the query (in qlue-ls)
+- [ ] Make it so format put all comments `#+` at the start of the query (qlue-ls)
+- [ ] Add support for RDF files? e.g. with [SemanticWebLanguageServer/swls](https://github.com/SemanticWebLanguageServer/swls)
+
+[Browse VSCode Icons](https://code.visualstudio.com/api/references/icons-in-labels)
+
+[VSCode marketplace publisher manage page](https://marketplace.visualstudio.com/manage/)
 
 Run tests:
 
@@ -65,5 +69,3 @@ Go further:
 
 - Reduce the extension size and improve the startup time by [bundling your extension](https://code.visualstudio.com/api/working-with-extensions/bundling-extension).
 - Automate builds by setting up [Continuous Integration](https://code.visualstudio.com/api/working-with-extensions/continuous-integration).
-- [Browse VSCode Icons](https://code.visualstudio.com/api/references/icons-in-labels)
-- [VSCode marketplace publisher manage page](https://marketplace.visualstudio.com/manage/)

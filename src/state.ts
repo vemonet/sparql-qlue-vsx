@@ -209,7 +209,6 @@ export const DEFAULT_ENDPOINTS: string[] = [
   'https://id.nlm.nih.gov/mesh/sparql',
   'https://agrovoc.fao.org/sparql',
   'https://data.europa.eu/sparql',
-  '',
 ];
 
 export const DEFAULT_COMPLETION_QUERIES: Record<string, string> = {

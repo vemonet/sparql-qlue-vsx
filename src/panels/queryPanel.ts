@@ -122,6 +122,51 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
       this.view?.webview.postMessage({ type: 'setEndpoints', endpoints: this.getSavedEndpoints() });
       return;
     }
+    if (msg.type === 'pinEndpoint') {
+      const { endpoint } = msg;
+      if (!endpoint) {
+        return;
+      }
+      if (!this.currentFileUri) {
+        this.view?.webview.postMessage({
+          type: 'error',
+          message: 'No query file is currently open.',
+        });
+        return;
+      }
+      try {
+        const uri = vscode.Uri.parse(this.currentFileUri);
+        const doc = await vscode.workspace.openTextDocument(uri);
+        const text = doc.getText();
+        const endpointLineRegex = /^#\+\s*endpoint\s*:.*$/m;
+        const newLine = `#+ endpoint: ${endpoint}`;
+        const edit = new vscode.WorkspaceEdit();
+        const match = endpointLineRegex.exec(text);
+        if (match) {
+          const existingLineNum = doc.positionAt(match.index).line;
+          if (existingLineNum === 0) {
+            // Already at the top — just update the URL in place
+            const startPos = doc.positionAt(match.index);
+            const endPos = doc.positionAt(match.index + match[0].length);
+            edit.replace(uri, new vscode.Range(startPos, endPos), newLine);
+          } else {
+            // Remove the existing line (including its trailing newline) and insert at the top
+            const lineRange = doc.lineAt(existingLineNum).rangeIncludingLineBreak;
+            edit.delete(uri, lineRange);
+            edit.insert(uri, new vscode.Position(0, 0), newLine + '\n');
+          }
+        } else {
+          edit.insert(uri, new vscode.Position(0, 0), newLine + '\n');
+        }
+        await vscode.workspace.applyEdit(edit);
+      } catch (err: unknown) {
+        this.view?.webview.postMessage({
+          type: 'error',
+          message: `Failed to update file: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      }
+      return;
+    }
     if (msg.type === 'executeQuery') {
       const { endpoint } = msg;
       // Always read the live document text so edits made since the last debounce are picked up

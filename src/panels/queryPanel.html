@@ -65,7 +65,7 @@
         top: 100%;
         left: 0;
         right: 0;
-        z-index: 100;
+        z-index: 9999;
         background: var(--vscode-dropdown-background, var(--input-bg));
         border: 1px solid var(--vscode-focusBorder, var(--input-border));
         border-top: none;
@@ -136,6 +136,25 @@
       #executeBtn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+      }
+      #pinEndpointBtn {
+        width: 32px;
+        padding: 6px 0;
+        background: transparent;
+        color: var(--fg);
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: inherit;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        opacity: 0.75;
+      }
+      #pinEndpointBtn:hover {
+        background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.15));
+        opacity: 1;
       }
       #executeBtn.loading {
         background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, 0.2));
@@ -324,6 +343,23 @@
         <div id="endpointDropdown"></div>
       </div>
       <button id="executeBtn" title="Execute query">&#9654;</button>
+      <button id="pinEndpointBtn" title="Set current endpoint as `#+ endpoint:` comment in the query file">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 17v5" />
+          <path
+            d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"
+          />
+        </svg>
+      </button>
     </div>
     <div id="status"></div>
     <div id="results"></div>
@@ -335,6 +371,7 @@
       const endpointInput = document.getElementById('endpointInput');
       const endpointDropdown = document.getElementById('endpointDropdown');
       const executeBtn = document.getElementById('executeBtn');
+      const pinEndpointBtn = document.getElementById('pinEndpointBtn');
       const statusDiv = document.getElementById('status');
       const resultsDiv = document.getElementById('results');
 
@@ -420,6 +457,15 @@
         const val = endpointInput.value.trim().toLowerCase();
         const filtered = val ? savedEndpoints.filter((u) => u.toLowerCase().includes(val)) : savedEndpoints;
         if (filtered.length) openDropdown(filtered);
+      });
+
+      pinEndpointBtn.addEventListener('click', () => {
+        const endpoint = endpointInput.value.trim();
+        if (!endpoint) {
+          showStatus('Please enter a SPARQL endpoint URL.', 'error');
+          return;
+        }
+        vscode.postMessage({ type: 'pinEndpoint', endpoint });
       });
 
       executeBtn.addEventListener('click', () => {
@@ -537,6 +583,12 @@
 
           case 'setEndpoints': {
             savedEndpoints = msg.endpoints || [];
+            // If dropdown is open, refresh it immediately so deletions are reflected at once
+            if (endpointDropdown.classList.contains('open')) {
+              const val = endpointInput.value.trim().toLowerCase();
+              const filtered = val ? savedEndpoints.filter((u) => u.toLowerCase().includes(val)) : savedEndpoints;
+              openDropdown(filtered);
+            }
             break;
           }
 

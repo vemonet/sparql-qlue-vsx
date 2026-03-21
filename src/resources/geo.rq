@@ -1,4 +1,6 @@
 #+ endpoint: https://qlever.dev/api/osm-planet
+#+ summary: Create point geometries for coordinates
+#+ keywords: ["GeoSPARQL", "WKT"]
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 
 SELECT * WHERE {
