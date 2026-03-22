@@ -1,4 +1,6 @@
 #+ endpoint: https://sparql.omabrowser.org/sparql/
+#+ summary: Find rat orthologs of human HBB protein in OMA
+#+ keywords: ["orthology", "OMA"]
 PREFIX orth: <http://purl.org/net/orth#>
 PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX up: <http://purl.uniprot.org/core/>

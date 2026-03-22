@@ -4,6 +4,7 @@ import { buildPrefixMap, fetchEndpointPrefixes, findEndpointUrl } from './utils'
 import SettingsPanel from './panels/settingsPanel';
 import { SparqlLanguageServer } from './languageServer';
 import { DEFAULT_COMPLETION_QUERIES, ExtensionState } from './state';
+import { SPARQL_LEGEND, SparqlSemanticTokensProvider } from './semanticTokens';
 
 const lsServer = new SparqlLanguageServer();
 let queryPanel: SparqlQueryPanel;
@@ -57,6 +58,14 @@ async function useBackend(endpointUrl: string): Promise<void> {
 export async function activate(context: vscode.ExtensionContext) {
   extensionContext = context;
   state = new ExtensionState(context);
+  // Register semantic token provider so our custom types override any active theme
+  context.subscriptions.push(
+    vscode.languages.registerDocumentSemanticTokensProvider(
+      { language: 'sparql' },
+      new SparqlSemanticTokensProvider(),
+      SPARQL_LEGEND,
+    ),
+  );
   // Register the query panel as a WebviewViewProvider (shown in the bottom panel)
   queryPanel = new SparqlQueryPanel(context);
   queryPanel.onEndpointChange = useBackend;

@@ -56,6 +56,7 @@ jobs:
           args: -vv --latest --strip header
         env:
           OUTPUT: CHANGES.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release
         uses: softprops/action-gh-release@v2.2.1

@@ -48,8 +48,7 @@ npm version patch
 
 To do:
 
-- [ ] Use [semantic tokens](https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide)
-- [ ] Make it so format put all comments `#+` at the start of the query (qlue-ls)
+- [ ] Make it so format put all comments `#+` at the start of the query (in qlue-ls)
 
 Run tests:
 

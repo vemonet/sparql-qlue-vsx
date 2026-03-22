@@ -8,11 +8,21 @@ A Visual Studio Code extension with support for the [SPARQL](https://www.w3.org/
 - **Query execution & results inspection** with the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
 - **Configuration** of the language server
 
+## Installation
+
+Install this extension from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=vemonet.sparql-qlue) or [open-vsx](https://open-vsx.org/extension/vemonet/sparql-qlue).
+
+## Usage
+
+Once installed in Visual Studio Code, SPARQL Qlue will automatically execute when you open or edit a `.rq` or `.sparql` file.
+
+The extension automatically disables the SPARQL language server from the [`semantic-web-lsp`](https://marketplace.visualstudio.com/items?itemName=ajuvercr.semantic-web-lsp) extension with settings `"swls.sparql": false` to avoid running two SPARQL language servers. We recommend to install it for RDF files support.
+
 ![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png)
 
 ## 🔧 Language Server
 
-Use the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server compiled to WebAssembly, running in-process.
+This extension uses the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server compiled to WebAssembly, running in-process.
 
 - **Context-aware autocomplete**: suggests subjects, predicates, and objects based on your SPARQL endpoint and the current query context
 - **Hover information**: shows labels and descriptions for IRIs by querying the endpoint
@@ -41,14 +51,6 @@ Click the ⚙️ button in the file header, or **right-click → Configure SPARQ
 - Backends with custom prefixes and completion queries per endpoint stored in global state.
 
 ![Screenshot settings](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
-
-## 🧩 Install with RDF language server
-
-For other RDF files, we recommend to use the [semantic-web-lsp](https://marketplace.visualstudio.com/items?itemName=ajuvercr.semantic-web-lsp), you can disable the SPARQL support from the semantic-web-lsp to use qlue-ls for SPARQL files by adding this to your `settings.json`:
-
-```json
-  "swls.sparql": false
-```
 
 ## 🛠️ Contributing
 

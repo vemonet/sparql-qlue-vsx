@@ -65,18 +65,6 @@
         "path": "./dist/resources/sparql.tmLanguage.json"
       }
     ],
-    "themes": [
-      {
-        "label": "SPARQL Dark",
-        "uiTheme": "vs-dark",
-        "path": "./dist/resources/sparql-dark.json"
-      },
-      {
-        "label": "SPARQL Light",
-        "uiTheme": "vs",
-        "path": "./dist/resources/sparql-light.json"
-      }
-    ],
     "viewsContainers": {
       "panel": [
         {
@@ -119,6 +107,80 @@
         "command": "sparql-qlue.sparqlMenu",
         "title": "SPARQL Qlue Menu",
         "category": "SPARQL Qlue"
+      }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "sparqlKeyword",
+        "superType": "keyword",
+        "description": "A SPARQL keyword, e.g. SELECT, WHERE, DISTINCT, PREFIX"
+      },
+      {
+        "id": "sparqlFunction",
+        "superType": "function",
+        "description": "A SPARQL built-in function, e.g. CONCAT, STRDT, COUNT"
+      },
+      {
+        "id": "sparqlVariable",
+        "superType": "variable",
+        "description": "A SPARQL variable, e.g. ?x or $x"
+      },
+      {
+        "id": "sparqlPrefixedName",
+        "superType": "type",
+        "description": "A SPARQL prefixed name or namespace, e.g. rdf:type or rdfs:"
+      },
+      {
+        "id": "sparqlIri",
+        "superType": "string",
+        "description": "A full SPARQL IRI, e.g. <http://example.org/>"
+      },
+      {
+        "id": "sparqlBlankNode",
+        "superType": "variable",
+        "description": "A SPARQL blank node, e.g. _:label"
+      },
+      {
+        "id": "sparqlString",
+        "superType": "string",
+        "description": "A SPARQL string literal, e.g. \"hello\" or 'world'"
+      },
+      {
+        "id": "sparqlNumber",
+        "superType": "number",
+        "description": "A SPARQL numeric literal, e.g. 42 or 3.14"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "sparql",
+        "scopes": {
+          "sparqlKeyword": [
+            "keyword.control.sparql",
+            "keyword.operator.prefixdecl.sparql"
+          ],
+          "sparqlFunction": [
+            "keyword.operator.function.sparql"
+          ],
+          "sparqlVariable": [
+            "variable.other.sparql"
+          ],
+          "sparqlPrefixedName": [
+            "constant.other.prefixed-name.sparql"
+          ],
+          "sparqlIri": [
+            "constant.other.iri.sparql"
+          ],
+          "sparqlBlankNode": [
+            "constant.other.blank-node.sparql"
+          ],
+          "sparqlString": [
+            "string.quoted.double.sparql"
+          ],
+          "sparqlNumber": [
+            "constant.numeric.integer.sparql"
+          ]
+        }
       }
     ],
     "menus": {
@@ -280,6 +342,24 @@
           "default": "off",
           "markdownDescription": "Traces the communication between VSCode and the SPARQL language server."
         }
+      }
+    }
+  },
+  "configurationDefaults": {
+    "[sparql]": {
+      "editor.semanticHighlighting.enabled": true
+    },
+    "swls.sparql": false,
+    "editor.semanticTokenColorCustomizations": {
+      "rules": {
+        "sparqlKeyword": "#6c71c4",
+        "sparqlFunction": "#2aa198",
+        "sparqlVariable": "#839496",
+        "sparqlPrefixedName": "#b58900",
+        "sparqlIri": "#268bd2",
+        "sparqlBlankNode": "#586e75",
+        "sparqlString": "#859900",
+        "sparqlNumber": "#cb4b16"
       }
     }
   },
