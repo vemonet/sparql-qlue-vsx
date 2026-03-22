@@ -1,5 +1,11 @@
 # 📜 Changelog
 
+## [0.0.5](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.4..v0.0.5) - 2026-03-22
+
+### ⛰️ Features
+
+- Create a `SparqlSemanticTokensProvider` to enable semantic highlighting and better adapt directly to themes colors instead of providing 2 themes, disable settings `sparql.swls` by default to avoid conflicts - ([e1593c9](https://github.com/vemonet/sparql-qlue-vsx/commit/e1593c9827384e9bb0f5592d401757a2bcf20d28))
+
 ## [0.0.4](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.3..v0.0.4) - 2026-03-21
 
 ### 🐛 Bug Fixes
