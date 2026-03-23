@@ -1,5 +1,11 @@
 # 📜 Changelog
 
+## [0.0.6](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.5..v0.0.6) - 2026-03-23
+
+### ⛰️ Features
+
+- Add command to create query file from examples extracted from the endpoint (declared with SHACL) - ([2cea55c](https://github.com/vemonet/sparql-qlue-vsx/commit/2cea55c9d90f06fa7133659f6a2683f05d38cd00))
+
 ## [0.0.5](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.4..v0.0.5) - 2026-03-22
 
 ### ⛰️ Features
