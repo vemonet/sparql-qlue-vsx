@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { SparqlQueryPanel } from './panels/queryPanel';
-import { buildPrefixMap, fetchEndpointPrefixes, findEndpointUrl } from './utils';
+import { buildPrefixMap, fetchEndpointExamples, fetchEndpointPrefixes, findEndpointUrl } from './utils';
 import SettingsPanel from './panels/settingsPanel';
 import { SparqlLanguageServer } from './languageServer';
 import { DEFAULT_COMPLETION_QUERIES, ExtensionState } from './state';
@@ -125,24 +125,80 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  // Status bar quick-menu when click bottom-right: choose between Query panel and Settings
+  // Command: Create a new SPARQL file from an endpoint example
   context.subscriptions.push(
-    vscode.commands.registerCommand('sparql-qlue.sparqlMenu', async () => {
-      const choice = await vscode.window.showQuickPick(
-        [
-          { label: '$(play) Execute SPARQL Query', action: 'execute' },
-          { label: '$(settings-gear) Configure SPARQL Language Server', action: 'settings' },
-        ],
-        { placeHolder: 'SPARQL Qlue' },
-      );
-      if (!choice) {
+    vscode.commands.registerCommand('sparql-qlue.newQueryFromExample', async (uri?: vscode.Uri) => {
+      // Resolve the endpoint from the active document or the invoking file
+      let endpointUrl = '';
+      let document: vscode.TextDocument | undefined;
+      if (uri) {
+        try {
+          document = await vscode.workspace.openTextDocument(uri);
+        } catch {
+          /* ignore */
+        }
+      } else {
+        const editor = vscode.window.activeTextEditor;
+        if (editor?.document.languageId === 'sparql') {
+          document = editor.document;
+        }
+      }
+      endpointUrl = document ? await getDocEndpoint(document) : '';
+
+      if (!endpointUrl) {
+        vscode.window.showWarningMessage(
+          'No SPARQL endpoint found for this file. Add a "#+ endpoint: <url>" comment or an endpoint.txt file.',
+        );
         return;
       }
-      if (choice.action === 'execute') {
-        vscode.commands.executeCommand('sparql-qlue.executeQuery');
-      } else {
-        vscode.commands.executeCommand('sparql-qlue.openServerSettings');
+
+      const backends = state.getBackends();
+      let examples = backends[endpointUrl]?.examples;
+      if (!examples) {
+        examples = await vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Notification, title: 'Fetching examples…', cancellable: false },
+          async () => {
+            const timeoutMs = (state.getSettings().completion as Record<string, unknown> | undefined)?.timeoutMs as
+              | number
+              | undefined;
+            const fetched = await fetchEndpointExamples(endpointUrl, timeoutMs);
+            if (fetched.length > 0) {
+              const backend = backends[endpointUrl];
+              if (backend) {
+                await state.setBackends({ ...backends, [endpointUrl]: { ...backend, examples: fetched } });
+              }
+            }
+            return fetched;
+          },
+        );
       }
+      if (examples.length === 0) {
+        vscode.window.showInformationMessage(`No SPARQL examples found at ${endpointUrl}.`);
+        return;
+      }
+      const items = examples.map((ex) => ({
+        label: ex.comment,
+        detail: ex.query.replace(/\s+/g, ' ').slice(0, 120),
+        example: ex,
+      }));
+      const picked = await vscode.window.showQuickPick(items, {
+        placeHolder: `Pick an example query from ${endpointUrl}`,
+        matchOnDetail: true,
+      });
+      if (!picked) {
+        return;
+      }
+      const header = `#+ endpoint: ${endpointUrl}\n`;
+      const content = header + picked.example.query;
+      const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content });
+      await vscode.window.showTextDocument(doc);
+    }),
+  );
+
+  // Status bar item at bottom-right opens the command palette pre-filtered to SPARQL Qlue commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sparql-qlue.sparqlMenu', () => {
+      vscode.commands.executeCommand('workbench.action.quickOpen', '>SPARQL Qlue: ');
     }),
   );
 

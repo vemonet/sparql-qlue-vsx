@@ -104,6 +104,12 @@
         "icon": "$(settings-gear)"
       },
       {
+        "command": "sparql-qlue.newQueryFromExample",
+        "title": "New Query from Example",
+        "category": "SPARQL Qlue",
+        "icon": "$(file-add)"
+      },
+      {
         "command": "sparql-qlue.sparqlMenu",
         "title": "SPARQL Qlue Menu",
         "category": "SPARQL Qlue"
@@ -203,21 +209,31 @@
           "group": "1_sparql@1"
         },
         {
-          "command": "sparql-qlue.openServerSettings",
+          "command": "sparql-qlue.newQueryFromExample",
           "when": "resourceLangId == sparql",
           "group": "1_sparql@2"
+        },
+        {
+          "command": "sparql-qlue.openServerSettings",
+          "when": "resourceLangId == sparql",
+          "group": "1_sparql@3"
         }
       ],
       "explorer/context": [
         {
           "command": "sparql-qlue.executeQuery",
           "when": "resourceExtname == .rq || resourceExtname == .sparql",
-          "group": "1_sparql"
+          "group": "1_sparql@1"
+        },
+        {
+          "command": "sparql-qlue.newQueryFromExample",
+          "when": "resourceExtname == .rq || resourceExtname == .sparql",
+          "group": "1_sparql@2"
         },
         {
           "command": "sparql-qlue.showQueryPanel",
           "when": "resourceExtname == .rq || resourceExtname == .sparql",
-          "group": "1_sparql"
+          "group": "1_sparql@3"
         }
       ]
     },

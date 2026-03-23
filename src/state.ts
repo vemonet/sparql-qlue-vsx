@@ -115,9 +115,16 @@ export class ExtensionState {
 
 // ── Backend configuration ────────────────────────────────────────────────────
 
+export interface SparqlExample {
+  uri: string;
+  comment: string;
+  query: string;
+}
+
 export interface BackendConfig {
   prefixMap: Record<string, string>;
   queries: Record<string, string>;
+  examples?: SparqlExample[];
 }
 
 export function defaultBackendConfig(): BackendConfig {

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getNonce } from '../utils';
+import { getNonce, querySparql } from '../utils';
 import { ExtensionState, DEFAULT_ENDPOINTS } from '../state';
 
 export class SparqlQueryPanel implements vscode.WebviewViewProvider {
@@ -203,17 +203,7 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
             ? 'text/turtle, application/n-triples, application/ld+json'
             : 'application/sparql-results+json';
 
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/sparql-query',
-            Accept: accept,
-            'User-Agent': `sparql-qlue/${this.context.extension.packageJSON.version}`,
-          },
-          body: query,
-          signal: this.activeAbortController.signal,
-        });
-
+        const response = await querySparql(endpoint, query, this.activeAbortController.signal, accept);
         if (!response.ok) {
           const errorText = await response.text();
           this.view?.webview.postMessage({

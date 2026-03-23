@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { randomBytes } from 'crypto';
-import { DEFAULT_PREFIX_MAP } from './state';
+import { DEFAULT_PREFIX_MAP, SparqlExample } from './state';
 
 /**
  * Find the SPARQL endpoint URL from:
@@ -54,16 +54,7 @@ SELECT DISTINCT ?prefix ?namespace WHERE {
   [] sh:namespace ?namespace ; sh:prefix ?prefix .
 } ORDER BY ?prefix`;
   try {
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/sparql-query',
-        Accept: 'application/sparql-results+json',
-        'User-Agent': `sparql-qlue/${(require('../package.json') as { version: string }).version}`,
-      },
-      body: query,
-      signal: AbortSignal.timeout(timeoutMs),
-    });
+    const response = await querySparql(endpointUrl, query, AbortSignal.timeout(timeoutMs));
     if (!response.ok) {
       return {};
     }
@@ -107,4 +98,58 @@ export function buildPrefixMap(
 /** Generate a cryptographically secure nonce string. */
 export function getNonce(): string {
   return randomBytes(16).toString('hex');
+}
+
+const PKG_VERSION = (require('../package.json') as { version: string }).version;
+
+/** Send a SPARQL query to an endpoint via HTTP POST and return the raw Response. */
+export async function querySparql(
+  endpointUrl: string,
+  query: string,
+  signal: AbortSignal = AbortSignal.timeout(5000),
+  accept = 'application/sparql-results+json',
+): Promise<Response> {
+  return fetch(endpointUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/sparql-query',
+      Accept: accept,
+      'User-Agent': `sparql-qlue/${PKG_VERSION}`,
+    },
+    body: query,
+    signal,
+  });
+}
+
+/** Fetch SPARQL query examples declared with the SHACL/spex vocabulary from an endpoint. */
+export async function fetchEndpointExamples(endpointUrl: string, timeoutMs = 10000): Promise<SparqlExample[]> {
+  const query = `PREFIX sh: <http://www.w3.org/ns/shacl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX spex: <https://purl.expasy.org/sparql-examples/ontology#>
+
+SELECT DISTINCT ?sq ?comment ?query
+WHERE {
+    ?sq a sh:SPARQLExecutable ;
+        rdfs:comment ?comment ;
+        sh:select|sh:ask|sh:construct|spex:describe ?query .
+} ORDER BY ?sq`;
+  try {
+    const response = await querySparql(endpointUrl, query, AbortSignal.timeout(timeoutMs));
+    if (!response.ok) {
+      return [];
+    }
+    const data = (await response.json()) as { results?: { bindings?: Array<Record<string, { value: string }>> } };
+    const examples: SparqlExample[] = [];
+    for (const binding of data.results?.bindings ?? []) {
+      const uri = binding['sq']?.value;
+      const comment = binding['comment']?.value;
+      const queryText = binding['query']?.value;
+      if (uri && comment && queryText) {
+        examples.push({ uri, comment, query: queryText });
+      }
+    }
+    return examples;
+  } catch {
+    return [];
+  }
 }
