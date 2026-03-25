@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 
 /**
  * @type {import('esbuild').Plugin}
@@ -92,6 +93,23 @@ async function main() {
     platform: 'node',
     outfile: 'dist/extension.js',
     external: ['vscode'],
+    define: { PACKAGE_VERSION: JSON.stringify(pkg.version) },
+    logLevel: 'silent',
+    plugins: [copyWasmPlugin, esbuildProblemMatcherPlugin],
+  });
+
+  // Browser bundle for vscode.dev / web extension support
+  const ctxBrowser = await esbuild.context({
+    entryPoints: ['src/extension.ts'],
+    bundle: true,
+    format: 'cjs',
+    minify: production,
+    sourcemap: !production,
+    sourcesContent: false,
+    platform: 'browser',
+    outfile: 'dist/extension.browser.js',
+    external: ['vscode'],
+    define: { PACKAGE_VERSION: JSON.stringify(pkg.version) },
     logLevel: 'silent',
     plugins: [copyWasmPlugin, esbuildProblemMatcherPlugin],
   });
@@ -127,10 +145,13 @@ if (Y) {
 
   if (watch) {
     await ctx.watch();
+    await ctxBrowser.watch();
     await ctxPlugins.watch();
   } else {
     await ctx.rebuild();
     await ctx.dispose();
+    await ctxBrowser.rebuild();
+    await ctxBrowser.dispose();
     await ctxPlugins.rebuild();
     await ctxPlugins.dispose();
   }

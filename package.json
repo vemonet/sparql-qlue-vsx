@@ -43,6 +43,7 @@
     "vscode": "^1.110.0"
   },
   "main": "./dist/extension.js",
+  "browser": "./dist/extension.browser.js",
   "contributes": {
     "languages": [
       {

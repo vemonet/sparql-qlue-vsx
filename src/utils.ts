@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
-import { randomBytes } from 'crypto';
 import { DEFAULT_PREFIX_MAP, SparqlExample } from './state';
+
+// Injected at build time by esbuild (see esbuild.js)
+declare const PACKAGE_VERSION: string;
 
 /**
  * Find the SPARQL endpoint URL from:
@@ -18,31 +18,31 @@ export async function findEndpointUrl(document: vscode.TextDocument): Promise<st
   }
 
   // 2. Look for endpoint.txt in the same folder and parent folders
-  const documentDir = path.dirname(document.uri.fsPath);
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
-  const rootDir = workspaceFolder?.uri.fsPath ?? path.parse(documentDir).root;
-  let currentDir = documentDir;
+  const rootUri = workspaceFolder?.uri;
+  let currentUri = vscode.Uri.joinPath(document.uri, '..');
   while (true) {
-    const endpointFile = path.join(currentDir, 'endpoint.txt');
+    const endpointFileUri = vscode.Uri.joinPath(currentUri, 'endpoint.txt');
     try {
-      if (fs.existsSync(endpointFile)) {
-        const content = fs.readFileSync(endpointFile, 'utf-8').trim();
-        if (content) {
-          // Return the first non-empty line
-          const firstLine = content.split(/\r?\n/).find((l) => l.trim());
-          if (firstLine) {
-            return firstLine.trim();
-          }
+      const bytes = await vscode.workspace.fs.readFile(endpointFileUri);
+      const content = new TextDecoder().decode(bytes).trim();
+      if (content) {
+        const firstLine = content.split(/\r?\n/).find((l) => l.trim());
+        if (firstLine) {
+          return firstLine.trim();
         }
       }
     } catch {
-      /* ignore read errors */
+      /* not found — keep walking up */
     }
-
-    if (currentDir === rootDir || currentDir === path.dirname(currentDir)) {
+    if (rootUri && currentUri.toString() === rootUri.toString()) {
       break;
     }
-    currentDir = path.dirname(currentDir);
+    const parentUri = vscode.Uri.joinPath(currentUri, '..');
+    if (parentUri.toString() === currentUri.toString()) {
+      break;
+    }
+    currentUri = parentUri;
   }
   return '';
 }
@@ -97,10 +97,12 @@ export function buildPrefixMap(
 
 /** Generate a cryptographically secure nonce string. */
 export function getNonce(): string {
-  return randomBytes(16).toString('hex');
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
-
-const PKG_VERSION = (require('../package.json') as { version: string }).version;
 
 /** Send a SPARQL query to an endpoint via HTTP POST and return the raw Response. */
 export async function querySparql(
@@ -114,7 +116,7 @@ export async function querySparql(
     headers: {
       'Content-Type': 'application/sparql-query',
       Accept: accept,
-      'User-Agent': `sparql-qlue/${PKG_VERSION}`,
+      'User-Agent': `sparql-qlue/${PACKAGE_VERSION}`,
     },
     body: query,
     signal,

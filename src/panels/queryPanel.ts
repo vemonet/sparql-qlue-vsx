@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import { getNonce, querySparql } from '../utils';
 import { ExtensionState, DEFAULT_ENDPOINTS } from '../state';
 
@@ -45,13 +43,13 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
     this.state = new ExtensionState(context);
   }
 
-  resolveWebviewView(webviewView: vscode.WebviewView) {
+  async resolveWebviewView(webviewView: vscode.WebviewView) {
     this.view = webviewView;
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.file(path.join(this.context.extensionPath, 'dist'))],
+      localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'dist')],
     };
-    webviewView.webview.html = this.getWebviewContent(webviewView.webview);
+    webviewView.webview.html = await this.getWebviewContent(webviewView.webview);
     webviewView.webview.onDidReceiveMessage((msg) => this.handleMessage(msg), undefined, this.context.subscriptions);
     webviewView.onDidDispose(() => {
       this.view = undefined;
@@ -247,9 +245,9 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
     }
   }
 
-  private getWebviewContent(webview: vscode.Webview): string {
+  private async getWebviewContent(webview: vscode.Webview): Promise<string> {
     const extUri = (...segments: string[]) =>
-      webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, ...segments))).toString();
+      webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, ...segments)).toString();
     const replacements: Record<string, string> = {
       __NONCE__: getNonce(),
       __CSP_SOURCE__: webview.cspSource,
@@ -259,8 +257,9 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
       __YASR_PLUGINS_CSS_URI__: extUri('dist', 'panels', 'yasrPlugins.css'),
       __YASR_PLUGINS_JS_URI__: extUri('dist', 'panels', 'yasrPlugins.js'),
     };
-    const htmlPath = path.join(this.context.extensionPath, 'dist', 'panels', 'queryPanel.html');
-    return fs.readFileSync(htmlPath, 'utf8').replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
+    const htmlUri = vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'panels', 'queryPanel.html');
+    const htmlBytes = await vscode.workspace.fs.readFile(htmlUri);
+    return new TextDecoder().decode(htmlBytes).replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
   }
 
   setActiveBackendUrl(url: string): void {

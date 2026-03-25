@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import { getNonce } from '../utils';
 import type { SparqlLanguageServer } from '../languageServer';
 import { type BackendConfig, ExtensionState } from '../state';
@@ -8,7 +6,7 @@ import { type BackendConfig, ExtensionState } from '../state';
 export class SettingsPanel {
   public static currentPanel: vscode.WebviewPanel | undefined;
 
-  public static createOrShow(
+  public static async createOrShow(
     context: vscode.ExtensionContext,
     lsServer: SparqlLanguageServer,
     state: ExtensionState,
@@ -35,9 +33,9 @@ export class SettingsPanel {
       },
     );
     SettingsPanel.currentPanel = panel;
-    panel.webview.html = SettingsPanel.getHtmlForWebview(
+    panel.webview.html = await SettingsPanel.getHtmlForWebview(
       panel.webview,
-      context.extensionPath,
+      context.extensionUri,
       state.getSettings(),
       state.getBackends(),
     );
@@ -86,11 +84,18 @@ export class SettingsPanel {
     });
   }
 
-  private static getSettingsFields(
-    extensionPath: string,
-  ): Record<string, Array<{ key: string; type: string; default: boolean | number; description: string }>> {
-    const pkgPath = path.join(extensionPath, 'package.json');
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  private static async getSettingsFields(
+    extensionUri: vscode.Uri,
+  ): Promise<Record<string, Array<{ key: string; type: string; default: boolean | number; description: string }>>> {
+    const pkgUri = vscode.Uri.joinPath(extensionUri, 'package.json');
+    const pkgBytes = await vscode.workspace.fs.readFile(pkgUri);
+    const pkg = JSON.parse(new TextDecoder().decode(pkgBytes)) as {
+      contributes?: {
+        configuration?: {
+          properties?: Record<string, { type: string; default: boolean | number; description?: string }>;
+        };
+      };
+    };
     const props = pkg.contributes?.configuration?.properties ?? {};
     const sections: Record<
       string,
@@ -125,21 +130,22 @@ export class SettingsPanel {
     return sections;
   }
 
-  private static getHtmlForWebview(
+  private static async getHtmlForWebview(
     webview: vscode.Webview,
-    extensionPath: string,
-    settings: any,
+    extensionUri: vscode.Uri,
+    settings: unknown,
     endpointBackends: Record<string, BackendConfig>,
-  ): string {
+  ): Promise<string> {
     const replacements: Record<string, string> = {
       __NONCE__: getNonce(),
       __CSP_SOURCE__: webview.cspSource,
       __SETTINGS__: JSON.stringify(settings ?? {}),
       __ENDPOINT_BACKENDS__: JSON.stringify(endpointBackends ?? {}),
-      __SETTINGS_FIELDS__: JSON.stringify(SettingsPanel.getSettingsFields(extensionPath)),
+      __SETTINGS_FIELDS__: JSON.stringify(await SettingsPanel.getSettingsFields(extensionUri)),
     };
-    const htmlPath = path.join(extensionPath, 'dist', 'panels', 'settingsPanel.html');
-    return fs.readFileSync(htmlPath, 'utf8').replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
+    const htmlUri = vscode.Uri.joinPath(extensionUri, 'dist', 'panels', 'settingsPanel.html');
+    const htmlBytes = await vscode.workspace.fs.readFile(htmlUri);
+    return new TextDecoder().decode(htmlBytes).replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
   }
 }
 
