@@ -197,6 +197,7 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
 
       const queryType = detectQueryType(query);
       this.activeAbortController = new AbortController();
+      const queryStartTime = Date.now();
       try {
         const accept =
           queryType === 'CONSTRUCT' || queryType === 'DESCRIBE'
@@ -231,6 +232,7 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
           contentType,
           queryType,
           prefixes,
+          executionTime: Date.now() - queryStartTime,
         });
       } catch (err: unknown) {
         if (err instanceof Error && err.name === 'AbortError') {

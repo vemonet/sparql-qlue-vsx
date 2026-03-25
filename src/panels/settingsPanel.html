@@ -463,6 +463,9 @@
     <h2>Endpoint backends</h2>
     <div id="endpoints-section"></div>
 
+    <h2>General</h2>
+    <div class="section" id="gen-section"></div>
+
     <h2>Format</h2>
     <div class="section" id="fmt-section"></div>
 
@@ -504,16 +507,18 @@
       const settings = __SETTINGS_FIELDS__;
 
       // Map from section id prefix → TOML key
-      const SECTION_KEYS = { fmt: 'format', cmp: 'completion', pfx: 'prefixes' };
+      const SECTION_KEYS = { gen: 'general', fmt: 'format', cmp: 'completion', pfx: 'prefixes' };
 
       // FIELDS[sectionPrefix] = [[key, type, description], ...]
       const FIELDS = {
+        gen: settings.general.map((f) => [f.key, f.type, f.description]),
         fmt: settings.format.map((f) => [f.key, f.type, f.description]),
         cmp: settings.completion.map((f) => [f.key, f.type, f.description]),
         pfx: settings.prefixes.map((f) => [f.key, f.type, f.description]),
       };
 
       const DEFAULTS = {
+        general: Object.fromEntries(settings.general.map((f) => [f.key, f.default])),
         format: Object.fromEntries(settings.format.map((f) => [f.key, f.default])),
         completion: Object.fromEntries(settings.completion.map((f) => [f.key, f.default])),
         prefixes: Object.fromEntries(settings.prefixes.map((f) => [f.key, f.default])),
@@ -816,6 +821,7 @@
       }
 
       renderEndpoints(endpointBackends);
+      renderSection('gen');
       renderSection('fmt');
       renderSection('cmp');
       renderSection('pfx');
@@ -847,6 +853,7 @@
         vscode.postMessage({
           type: 'save',
           settings: {
+            general: readSection('gen'),
             format: readSection('fmt'),
             completion: readSection('cmp'),
             prefixes: readSection('pfx'),

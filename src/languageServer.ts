@@ -51,7 +51,26 @@ export class SparqlLanguageServer {
       'sparql-qlue',
       'SPARQL Qlue Language Server',
       () => Promise.resolve({ reader, writer }),
-      { documentSelector: [{ language: 'sparql' }] },
+      {
+        documentSelector: [{ language: 'sparql' }],
+        middleware: {
+          // NOTE: avoid error notifs for every completion/hover requests, often unjustified
+          provideCompletionItem: async (document, position, context, token, next) => {
+            try {
+              return await next(document, position, context, token);
+            } catch {
+              return null;
+            }
+          },
+          provideHover: async (document, position, token, next) => {
+            try {
+              return await next(document, position, token);
+            } catch {
+              return null;
+            }
+          },
+        },
+      },
     );
     await this._client.start();
     context.subscriptions.push(this._client);

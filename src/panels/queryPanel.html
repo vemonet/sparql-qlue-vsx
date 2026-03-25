@@ -568,7 +568,7 @@
           case 'results':
             setExecuting(false);
             clearStatus();
-            displayResults(msg.data, msg.contentType, msg.queryType, msg.prefixes || {});
+            displayResults(msg.data, msg.contentType, msg.queryType, msg.prefixes || {}, msg.executionTime ?? 0);
             break;
 
           case 'error':
@@ -600,7 +600,7 @@
         }
       });
 
-      function displayResults(data, contentType, queryType, prefixes) {
+      function displayResults(data, contentType, queryType, prefixes, executionTime) {
         resultsDiv.innerHTML = '';
         try {
           yasrInstance = new Yasr(resultsDiv, {
@@ -612,7 +612,7 @@
             data: data,
             contentType: contentType,
             status: 200,
-            executionTime: 0,
+            executionTime: executionTime,
           });
         } catch (e) {
           console.error('Error rendering results with YASR:', e);

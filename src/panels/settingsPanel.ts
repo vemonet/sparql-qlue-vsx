@@ -95,12 +95,19 @@ export class SettingsPanel {
     const sections: Record<
       string,
       Array<{ key: string; type: string; default: boolean | number; description: string }>
-    > = { format: [], completion: [], prefixes: [] };
+    > = { general: [], format: [], completion: [], prefixes: [] };
     const PREFIX = 'sparql-qlue.';
     for (const [fullKey, def] of Object.entries(props) as [string, any][]) {
       const noPrefix = fullKey.slice(PREFIX.length);
       const dotIdx = noPrefix.indexOf('.');
       if (dotIdx === -1) {
+        // Top-level key (no sub-section) — place in 'general'
+        sections['general'].push({
+          key: noPrefix,
+          type: def.type === 'boolean' ? 'bool' : 'number',
+          default: def.default,
+          description: (def.description ?? '').replace(/\.$/, ''),
+        });
         continue;
       }
       const section = noPrefix.slice(0, dotIdx);

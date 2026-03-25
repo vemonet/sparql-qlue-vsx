@@ -302,6 +302,8 @@ export async function activate(context: vscode.ExtensionContext) {
         `SPARQL Qlue: Failed to start language server: ${err instanceof Error ? err.message : String(err)}`,
       );
     });
+
+  return { useDocEndpoint };
 }
 
 export function deactivate(): Promise<void> | undefined {
