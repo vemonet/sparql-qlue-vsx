@@ -1,5 +1,17 @@
 # 📜 Changelog
 
+## [0.0.7](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.6..v0.0.7) - 2026-03-26
+
+### ⛰️ Features
+
+- Feat: update extension to make it compatible with web install
+  feat: make the extension work in browser monaco editor - ([ed5a443](https://github.com/vemonet/sparql-qlue-vsx/commit/ed5a4433a1ea9b42f591cc9505c0193aa11ade5d))
+- Add 2 tools for agents (execute SPARQL query and search examples/classes extracted from endpoints) - ([a1f4a71](https://github.com/vemonet/sparql-qlue-vsx/commit/a1f4a713898519a50999a233e3ef062c3f3f1f99))
+
+### 🚜 Refactor
+
+- Add `formatOnSave` to settings panel, reduce amount of warning notifications from completion and hover of the language server, add integration tests for the extension, add query run time - ([15bd154](https://github.com/vemonet/sparql-qlue-vsx/commit/15bd1547cdd554c92f86801bd1609ebfbe1596f5))
+
 ## [0.0.6](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.5..v0.0.6) - 2026-03-23
 
 ### ⛰️ Features
