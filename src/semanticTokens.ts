@@ -42,15 +42,17 @@ function collectRanges(text: string): SkipRange[] {
       ranges.push({ start, end, tokenType });
     }
   };
-  // Triple-quoted strings must be matched before single-quoted ones
+  // Comments first, so quoted strings inside comments are not tokenized as strings.
+  for (const m of text.matchAll(/#[^\n]*/g)) {
+    add(m.index!, m.index! + m[0].length);
+  }
+  // Triple-quoted strings
   for (const m of text.matchAll(/"""[\s\S]*?"""|'''[\s\S]*?'''/g)) {
     add(m.index!, m.index! + m[0].length, TI.sparqlString);
   }
+  // Single-quoted strings
   for (const m of text.matchAll(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g)) {
     add(m.index!, m.index! + m[0].length, TI.sparqlString);
-  }
-  for (const m of text.matchAll(/#[^\n]*/g)) {
-    add(m.index!, m.index! + m[0].length);
   }
   // IRIs: exclude whitespace inside so comparison operators (<, >) are not matched
   for (const m of text.matchAll(/<[^>\s]*>/g)) {

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getNonce, querySparql } from '../utils';
-import { ExtensionState, DEFAULT_ENDPOINTS } from '../state';
+import { ExtensionState, DEFAULT_ENDPOINTS, BackendConfig } from '../state';
 
 export class SparqlQueryPanel implements vscode.WebviewViewProvider {
   static readonly viewId = 'sparql-qlue.queryPanel';
@@ -262,8 +262,14 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
     return new TextDecoder().decode(htmlBytes).replace(/__[A-Z_]+__/g, (m) => replacements[m] ?? m);
   }
 
-  setActiveBackendUrl(url: string): void {
-    this.view?.webview.postMessage({ type: 'setBackend', url });
+  setActiveBackendUrl(url: string, backend?: BackendConfig): void {
+    this.view?.webview.postMessage({
+      type: 'setBackend',
+      url,
+      prefixCount: backend ? Object.keys(backend.prefixMap).length : undefined,
+      exampleCount: backend?.examples?.length,
+      classCount: backend?.classSchemas?.length,
+    });
   }
 
   dispose() {

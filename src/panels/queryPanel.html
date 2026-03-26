@@ -343,7 +343,7 @@
         <div id="endpointDropdown"></div>
       </div>
       <button id="executeBtn" title="Execute query">&#9654;</button>
-      <button id="pinEndpointBtn" title="Set current endpoint as `#+ endpoint:` comment in the query file">
+      <button id="pinEndpointBtn" title="Set current endpoint as '#+ endpoint:' comment in the query file">
         <svg
           width="14"
           height="14"
@@ -594,7 +594,19 @@
 
           case 'setBackend': {
             const lbl = document.getElementById('endpointLabel');
-            if (lbl) lbl.title = msg.url ? `Active backend: ${msg.url}` : '';
+            if (lbl) {
+              if (msg.url) {
+                const parts = [`Active backend: ${msg.url}`];
+                const stats = [];
+                if (msg.prefixCount !== undefined) stats.push(`${msg.prefixCount} prefixes`);
+                if (msg.exampleCount !== undefined) stats.push(`${msg.exampleCount} examples`);
+                if (msg.classCount !== undefined) stats.push(`${msg.classCount} classes`);
+                if (stats.length) parts.push(stats.join(' · '));
+                lbl.title = parts.join('\n');
+              } else {
+                lbl.title = '';
+              }
+            }
             break;
           }
         }

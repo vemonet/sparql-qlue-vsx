@@ -48,8 +48,8 @@ npm version patch
 
 To do:
 
-- [ ] Include a MCP server with tools: getExamples, getClassesSchema, use the [`ai-embed-search`](https://www.npmjs.com/package/ai-embed-search) package? Or LanceDB? [simile](https://github.com/iaavas/simile-search)?
-- [ ] Make the fetch request sent for executing the SPARQL query configurable at the endpoint level: GET/POST, headers, basic auth
+- [ ] When we store the class schema should we store it as a formatted string, so we can also easily support extracting and using SHACL/ShEx shapes without having to parse them
+- [ ] Make the fetch request sent for executing the SPARQL query configurable at the endpoint level: GET/POST, headers, basic auth. It can all be configured in a new section inside the backend expand
 - [ ] Enable to have backend profiles with a set of pre-optimized completion queries for a given triplestore/ontology.
 - [ ] Make it so format put all comments `#+` at the start of the query (in qlue-ls)
 

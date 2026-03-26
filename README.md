@@ -7,6 +7,7 @@ A Visual Studio Code extension with support for the [SPARQL](https://www.w3.org/
 - **Syntax highlighting** using semantic tokens to adapt to themes
 - **Query execution & results inspection** with the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component
 - **Configuration** of the language server
+- **Tools** for agents: execute query, and search in examples/classes schema extracted from the endpoints
 
 ## 📥 Installation
 

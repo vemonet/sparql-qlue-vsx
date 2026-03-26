@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
-import { DEFAULT_PREFIX_MAP, SparqlExample } from './state';
+import { DEFAULT_PREFIX_MAP, SparqlExample, type ClassSchema } from './state';
 
-// Injected at build time by esbuild (see esbuild.js)
-declare const PACKAGE_VERSION: string;
+function getExtensionVersion(): string {
+  return (
+    (vscode.extensions.getExtension('vemonet.sparql-qlue')?.packageJSON as Record<string, string> | undefined)
+      ?.version ?? 'unknown'
+  );
+}
 
 /**
  * Find the SPARQL endpoint URL from:
@@ -116,11 +120,61 @@ export async function querySparql(
     headers: {
       'Content-Type': 'application/sparql-query',
       Accept: accept,
-      'User-Agent': `sparql-qlue/${PACKAGE_VERSION}`,
+      'User-Agent': `sparql-qlue/${getExtensionVersion()}`,
     },
     body: query,
     signal,
   });
+}
+
+/** Fetch class/property schema from VoID descriptions at a SPARQL endpoint. */
+export async function fetchEndpointClasses(endpointUrl: string, timeoutMs = 15000): Promise<ClassSchema[]> {
+  const query = `PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX void-ext: <http://ldf.fi/void-ext#>
+
+SELECT DISTINCT ?subjectClass ?prop ?objectClass ?objectDatatype
+WHERE {
+  {
+    ?cp void:class ?subjectClass ;
+        void:propertyPartition ?pp .
+    ?pp void:property ?prop .
+    OPTIONAL {
+        {
+            ?pp  void:classPartition [ void:class ?objectClass ] .
+        } UNION {
+            ?pp void-ext:datatypePartition [ void-ext:datatype ?objectDatatype ] .
+        }
+    }
+  } UNION {
+    ?linkset void:subjectsTarget [ void:class ?subjectClass ] ;
+      void:linkPredicate ?prop ;
+      void:objectsTarget [ void:class ?objectClass ] .
+  }
+}
+LIMIT 500`;
+  try {
+    const response = await querySparql(endpointUrl, query, AbortSignal.timeout(timeoutMs));
+    if (!response.ok) {
+      return [];
+    }
+    const data = (await response.json()) as { results?: { bindings?: Array<Record<string, { value: string }>> } };
+    const schemas: ClassSchema[] = [];
+    for (const b of data.results?.bindings ?? []) {
+      const subjectClass = b['subjectClass']?.value;
+      const prop = b['prop']?.value;
+      if (subjectClass && prop) {
+        schemas.push({
+          subjectClass,
+          prop,
+          objectClass: b['objectClass']?.value,
+          objectDatatype: b['objectDatatype']?.value,
+        });
+      }
+    }
+    return schemas;
+  } catch {
+    return [];
+  }
 }
 
 /** Fetch SPARQL query examples declared with the SHACL/spex vocabulary from an endpoint. */

@@ -246,6 +246,56 @@
         "when": "resourceLangId == sparql"
       }
     ],
+    "languageModelTools": [
+      {
+        "name": "sparql-qlue_execute_query",
+        "displayName": "Execute SPARQL Query",
+        "toolReferenceName": "executeSparqlQuery",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(play)",
+        "modelDescription": "Executes a SPARQL query against a SPARQL endpoint and returns the raw results (JSON for SELECT/ASK, Turtle for CONSTRUCT/DESCRIBE). Use to retrieve live data from RDF knowledge graphs.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "The SPARQL query to execute (SELECT, CONSTRUCT, ASK, or DESCRIBE)."
+            },
+            "endpoint": {
+              "type": "string",
+              "description": "SPARQL endpoint URL (e.g. https://query.wikidata.org/sparql). If omitted, uses the currently active endpoint."
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      },
+      {
+        "name": "sparql-qlue_get_examples",
+        "displayName": "Get relevant SPARQL examples and classes schema",
+        "toolReferenceName": "sparqlGetExamplesAndClasses",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(search)",
+        "modelDescription": "Searches indexed documentation for a SPARQL endpoint: example queries, and class schemas from VoID descriptions. Use to discover available classes, properties, and query patterns before writing SPARQL.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Search terms to find relevant examples or class/property schemas."
+            },
+            "endpoint": {
+              "type": "string",
+              "description": "SPARQL endpoint URL to search. If omitted, searches the currently active endpoint."
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    ],
     "configuration": {
       "title": "SPARQL Qlue",
       "properties": {

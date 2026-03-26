@@ -121,10 +121,19 @@ export interface SparqlExample {
   query: string;
 }
 
+// TODO: merge objectDatatype in objectClass
+export interface ClassSchema {
+  subjectClass: string;
+  prop: string;
+  objectClass?: string;
+  objectDatatype?: string;
+}
+
 export interface BackendConfig {
   prefixMap: Record<string, string>;
   queries: Record<string, string>;
   examples?: SparqlExample[];
+  classSchemas?: ClassSchema[];
 }
 
 export function defaultBackendConfig(): BackendConfig {
