@@ -1,6 +1,6 @@
 # 🫆 SPARQL Qlue
 
-A Visual Studio Code extension with support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), using the **[qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server, providing:
+A Visual Studio Code extension that provides support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), using the **[qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server:
 
 - **Language intelligence**: autocomplete, diagnostics, hover info
 - **Query quality**: formatting, refactoring, code actions
@@ -9,19 +9,19 @@ A Visual Studio Code extension with support for the [SPARQL](https://www.w3.org/
 - **Configuration** of the language server
 - **Tools** for agents: execute query, and search in examples/classes schema extracted from the endpoints
 
-## 📥 Installation
+## Installation
 
 Install this extension from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=vemonet.sparql-qlue) or [open-vsx](https://open-vsx.org/extension/vemonet/sparql-qlue).
 
-## ⚡️ Usage
+## Usage
 
 Once installed in Visual Studio Code, SPARQL Qlue will automatically execute when you open or edit a `.rq` or `.sparql` file.
 
 The extension automatically disables the SPARQL language server from the [`semantic-web-lsp`](https://marketplace.visualstudio.com/items?itemName=ajuvercr.semantic-web-lsp) extension with settings `"swls.sparql": false` to avoid running two SPARQL language servers. We recommend to install it for RDF files support.
 
-## 🧩 Features
+## Features
 
-### 🔧 Qlue-ls Language Server
+### Qlue-ls Language Server
 
 This extension uses the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server compiled to WebAssembly, running in-process.
 
@@ -33,7 +33,7 @@ This extension uses the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) langu
 
 ![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png)
 
-### ▶️ Query Execution
+### Query Execution
 
 Run the active query with **Ctrl+Enter** / **Cmd+Enter**, the **▶** file header button, or **right-click → Execute SPARQL Query**
 
@@ -46,7 +46,7 @@ Results are displayed in the **SPARQL Results** panel using [YASGUI](https://git
 
 ![Screenshot geo query](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-geo.png)
 
-### ⚙️ Configuration
+### Configuration
 
 Click the ⚙️ button in the file header, or **right-click → Configure SPARQL Language Server** to open the settings editor.
 
@@ -55,6 +55,6 @@ Click the ⚙️ button in the file header, or **right-click → Configure SPARQ
 
 ![Screenshot settings](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
 
-## 🛠️ Contributing
+## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)

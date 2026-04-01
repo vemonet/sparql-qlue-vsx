@@ -295,30 +295,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  // Status bar item at bottom-right opens the command palette pre-filtered to SPARQL Qlue commands
-  context.subscriptions.push(
-    vscode.commands.registerCommand('sparql-qlue.sparqlMenu', () => {
-      vscode.commands.executeCommand('workbench.action.quickOpen', '>SPARQL Qlue: ');
-    }),
-  );
-
-  // Status bar item at bottom-right: click to open the quick menu
-  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusBarItem.command = 'sparql-qlue.sparqlMenu';
-  statusBarItem.text = '$(database) SPARQL Qlue';
-  statusBarItem.tooltip = 'SPARQL Qlue';
-  context.subscriptions.push(statusBarItem);
-  const updateStatusBar = (editor: vscode.TextEditor | undefined) => {
-    if (editor?.document.languageId === 'sparql') {
-      statusBarItem.show();
-    } else {
-      statusBarItem.hide();
-    }
-  };
-  updateStatusBar(vscode.window.activeTextEditor);
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(async (editor) => {
-      updateStatusBar(editor);
       if (editor?.document.languageId === 'sparql') {
         await useDocEndpoint(editor.document);
       }

@@ -170,6 +170,7 @@ export const DEFAULT_PREFIX_MAP: Record<string, string> = {
   npx: 'http://purl.org/nanopub/x/',
   obo: 'http://purl.obolibrary.org/obo/',
   oboInOwl: 'http://www.geneontology.org/formats/oboInOwl#',
+  osmwiki: 'https://www.openstreetmap.org/wiki/Key:',
   owl: 'http://www.w3.org/2002/07/owl#',
   pav: 'http://purl.org/pav/',
   prov: 'http://www.w3.org/ns/prov#',
@@ -243,7 +244,7 @@ LIMIT {{ limit }} OFFSET {{ offset }}`,
 
   predicateCompletionContextInsensitive: `{% include "prefix_declarations" %}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?qlue_ls_entity ?qlue_ls_label ?qlue_ls_alias ?qlue_ls_score WHERE {
+SELECT ?qlue_ls_entity (SAMPLE(?label) AS ?qlue_ls_label) (SAMPLE(?alias) AS ?qlue_ls_alias) ?qlue_ls_score WHERE {
   { SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?qlue_ls_score) WHERE
     {
       {{local_context}}
@@ -254,9 +255,9 @@ SELECT ?qlue_ls_entity ?qlue_ls_label ?qlue_ls_alias ?qlue_ls_score WHERE {
   {% elif search_term %}
   FILTER REGEX(STR(?qlue_ls_entity), "{{ search_term }}", "i")
   {% endif %}
-  OPTIONAL { ?qlue_ls_entity rdfs:label ?qlue_ls_label }
-  OPTIONAL { ?qlue_ls_entity rdfs:comment ?qlue_ls_alias }
-} ORDER BY DESC(?qlue_ls_score)
+  OPTIONAL { ?qlue_ls_entity rdfs:label ?label }
+  OPTIONAL { ?qlue_ls_entity rdfs:comment ?alias }
+} GROUP BY ?qlue_ls_entity ORDER BY DESC(?qlue_ls_score)
 LIMIT {{ limit }} OFFSET {{ offset }}`,
 
   predicateCompletionContextSensitive: `{% include "prefix_declarations" %}

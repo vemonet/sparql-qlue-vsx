@@ -100,20 +100,15 @@
       },
       {
         "command": "sparql-qlue.openServerSettings",
-        "title": "Configure SPARQL Language Server",
+        "title": "Configure Qlue-ls Language Server",
         "category": "SPARQL Qlue",
         "icon": "$(settings-gear)"
       },
       {
         "command": "sparql-qlue.newQueryFromExample",
-        "title": "New Query from Example",
+        "title": "New SPARQL Query from Example",
         "category": "SPARQL Qlue",
         "icon": "$(file-add)"
-      },
-      {
-        "command": "sparql-qlue.sparqlMenu",
-        "title": "SPARQL Qlue Menu",
-        "category": "SPARQL Qlue"
       }
     ],
     "semanticTokenTypes": [
@@ -191,16 +186,26 @@
       }
     ],
     "menus": {
-      "editor/title": [
+      "editor/title/run": [
         {
           "command": "sparql-qlue.executeQuery",
           "when": "resourceLangId == sparql",
           "group": "navigation@1"
         },
         {
-          "command": "sparql-qlue.openServerSettings",
+          "command": "sparql-qlue.showQueryPanel",
           "when": "resourceLangId == sparql",
           "group": "navigation@2"
+        },
+        {
+          "command": "sparql-qlue.newQueryFromExample",
+          "when": "resourceLangId == sparql",
+          "group": "navigation@3"
+        },
+        {
+          "command": "sparql-qlue.openServerSettings",
+          "when": "resourceLangId == sparql",
+          "group": "navigation@4"
         }
       ],
       "editor/context": [
@@ -230,11 +235,6 @@
           "command": "sparql-qlue.newQueryFromExample",
           "when": "resourceExtname == .rq || resourceExtname == .sparql",
           "group": "1_sparql@2"
-        },
-        {
-          "command": "sparql-qlue.showQueryPanel",
-          "when": "resourceExtname == .rq || resourceExtname == .sparql",
-          "group": "1_sparql@3"
         }
       ]
     },
