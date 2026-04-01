@@ -1,5 +1,15 @@
 # 📜 Changelog
 
+## [0.0.8](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.7..v0.0.8) - 2026-04-01
+
+### 🐛 Bug Fixes
+
+- Fix default completion queries and add space between prefixed IRI and label in completion suggestions dropdown - ([a1340b7](https://github.com/vemonet/sparql-qlue-vsx/commit/a1340b7098ad3b9469937a46d6594222ec5f50b0))
+
+### 🚜 Refactor
+
+- Remove status bar icon, add dropdown menu next to execute button in file frame - ([5404ad0](https://github.com/vemonet/sparql-qlue-vsx/commit/5404ad0d2466cd2efa7d07906bdf408245aca17f))
+
 ## [0.0.7](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.6..v0.0.7) - 2026-03-26
 
 ### ⛰️ Features
