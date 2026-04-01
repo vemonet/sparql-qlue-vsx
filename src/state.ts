@@ -247,7 +247,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?qlue_ls_entity (SAMPLE(?label) AS ?qlue_ls_label) (SAMPLE(?alias) AS ?qlue_ls_alias) ?qlue_ls_score WHERE {
   { SELECT ?qlue_ls_entity (COUNT(?qlue_ls_entity) AS ?qlue_ls_score) WHERE
     {
-      {{local_context}}
+      {{ local_context }}
     } GROUP BY ?qlue_ls_entity
   }
   {% if search_term_uncompressed %}
@@ -257,12 +257,12 @@ SELECT ?qlue_ls_entity (SAMPLE(?label) AS ?qlue_ls_label) (SAMPLE(?alias) AS ?ql
   {% endif %}
   OPTIONAL { ?qlue_ls_entity rdfs:label ?label }
   OPTIONAL { ?qlue_ls_entity rdfs:comment ?alias }
-} GROUP BY ?qlue_ls_entity ORDER BY DESC(?qlue_ls_score)
+} GROUP BY ?qlue_ls_entity ?qlue_ls_score ORDER BY DESC(?qlue_ls_score)
 LIMIT {{ limit }} OFFSET {{ offset }}`,
 
   predicateCompletionContextSensitive: `{% include "prefix_declarations" %}
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?qlue_ls_entity (SAMPLE(?label) AS ?qlue_ls_label) (SAMPLE(?alias) AS ?qlue_ls_alias) ?qlue_ls_score WHERE {
+SELECT ?qlue_ls_entity (SAMPLE(?qlue_ls_label_or_null) AS ?qlue_ls_label) (SAMPLE(?alias) AS ?qlue_ls_alias) ?qlue_ls_score WHERE {
   {
     SELECT ?qlue_ls_entity (
       {% if subject is variable and context %}
@@ -278,9 +278,9 @@ SELECT ?qlue_ls_entity (SAMPLE(?label) AS ?qlue_ls_label) (SAMPLE(?alias) AS ?ql
       {% endif %}
     } GROUP BY ?qlue_ls_entity
   }
-  OPTIONAL { ?qlue_ls_entity rdfs:label ?label }
+  OPTIONAL { ?qlue_ls_entity rdfs:label ?qlue_ls_label_or_null }
+  BIND (COALESCE(?qlue_ls_label_or_null, STR(?qlue_ls_entity)) AS ?label)
   OPTIONAL { ?qlue_ls_entity rdfs:comment ?alias }
-  #BIND (COALESCE(?qlue_ls_label_or_null, ?qlue_ls_entity) AS ?label)
   {% if search_term_uncompressed %}
   FILTER (REGEX(STR(?qlue_ls_entity), "^{{ search_term_uncompressed }}"))
   {% elif search_term %}

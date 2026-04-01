@@ -79,7 +79,18 @@ export class SparqlLanguageServer {
           // NOTE: avoid error notifs for every completion/hover requests, often unjustified
           provideCompletionItem: async (document, position, context, token, next) => {
             try {
-              return await next(document, position, context, token);
+              const result = await next(document, position, context, token);
+              if (!result) {
+                return result;
+              }
+              const items = Array.isArray(result) ? result : result.items;
+              for (const item of items) {
+                if (typeof item.label === 'object' && item.label.detail && !item.label.detail.startsWith(' ')) {
+                  // Add a space between prefixed IRI and label
+                  item.label.detail = ' ' + item.label.detail;
+                }
+              }
+              return result;
             } catch {
               return null;
             }
