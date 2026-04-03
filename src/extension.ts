@@ -13,6 +13,7 @@ import { DEFAULT_COMPLETION_QUERIES, ExtensionState, type BackendConfig } from '
 import { SPARQL_LEGEND, SparqlSemanticTokensProvider } from './semanticTokens';
 import { SearchIndex, type SearchDoc } from './searchIndex';
 import { registerTools } from './tools';
+import { localEndpoint } from './localEndpoint';
 
 const lsServer = new SparqlLanguageServer();
 let queryPanel: SparqlQueryPanel;
@@ -68,10 +69,15 @@ function indexBackend(endpointUrl: string, backend: BackendConfig): void {
   searchIndex.add(endpointUrl, docs);
 }
 
-/** Returns the endpoint for a document, either saved override or discovered automatically. */
+/** Returns the endpoint for a document, either saved override or discovered automatically.
+ * Falls back to the local Oxigraph store if it is loaded and no other endpoint is found. */
 async function getDocEndpoint(document: vscode.TextDocument): Promise<string> {
   const overrides = state?.getFileEndpoints() ?? {};
-  return overrides[document.uri.toString()] ?? (await findEndpointUrl(document));
+  const endpoint = overrides[document.uri.toString()] ?? (await findEndpointUrl(document));
+  if (!endpoint && localEndpoint.isLoaded()) {
+    return localEndpoint.url;
+  }
+  return endpoint;
 }
 
 /** Set up the backend for a given document. */
@@ -92,6 +98,12 @@ async function useBackend(endpointUrl: string): Promise<void> {
     return;
   }
   currentEndpoint = endpointUrl;
+
+  // Local Oxigraph store: no LS registration or remote prefix/example fetching
+  if (endpointUrl === localEndpoint.url) {
+    queryPanel?.setActiveBackendUrl(endpointUrl);
+    return;
+  }
   const backends = state.getBackends();
   let backend = backends[endpointUrl];
   if (!backend) {
@@ -292,6 +304,34 @@ export async function activate(context: vscode.ExtensionContext) {
       const content = header + picked.example.query;
       const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content });
       await vscode.window.showTextDocument(doc);
+    }),
+  );
+
+  // Command: Load an RDF file into the local Oxigraph triplestore
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sparql-qlue.addToLocalEndpoint', async (uri?: vscode.Uri) => {
+      const targetUri = uri ?? vscode.window.activeTextEditor?.document.uri;
+      if (!targetUri) {
+        vscode.window.showWarningMessage('No RDF file selected.');
+        return;
+      }
+      try {
+        const count = await localEndpoint.addFile(targetUri);
+        const { files } = localEndpoint.getInfo();
+        queryPanel?.refreshEndpoints();
+        vscode.window.showInformationMessage(`Local SPARQL endpoint: ${count} triples loaded (${files.join(', ')})`);
+      } catch (err: unknown) {
+        vscode.window.showErrorMessage(`Failed to load RDF file: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }),
+  );
+
+  // Command: Reset (clear) the local Oxigraph triplestore
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sparql-qlue.resetLocalEndpoint', () => {
+      localEndpoint.reset();
+      queryPanel?.refreshEndpoints();
+      vscode.window.showInformationMessage('Local SPARQL endpoint cleared.');
     }),
   );
 

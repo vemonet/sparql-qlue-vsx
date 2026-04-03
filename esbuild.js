@@ -40,6 +40,14 @@ const copyWasmPlugin = {
         fs.copyFileSync(wasmSrc, wasmDest);
         console.log('[wasm] copied qlue_ls_bg.wasm to dist/');
       }
+      // Oxigraph WASM must be alongside extension.js since node.js uses __dirname to locate it
+      const oxWasmSrc = path.resolve(__dirname, 'node_modules/oxigraph/node_bg.wasm');
+      const oxWasmDest = path.resolve(__dirname, 'dist/node_bg.wasm');
+      if (fs.existsSync(oxWasmSrc)) {
+        fs.copyFileSync(oxWasmSrc, oxWasmDest);
+        console.log('[wasm] copied oxigraph node_bg.wasm to dist/');
+      }
+      // Copy panels HTML files
       const panelsDist = path.resolve(__dirname, 'dist/panels');
       fs.mkdirSync(panelsDist, { recursive: true });
       const htmlSrc = path.resolve(__dirname, 'src/panels/queryPanel.html');
@@ -48,7 +56,7 @@ const copyWasmPlugin = {
         fs.copyFileSync(htmlSrc, htmlDest);
         console.log('[html] copied queryPanel.html to dist/');
       }
-      // Copy YASR and graph-plugin pre-built files so they are included in the packaged extension
+      // Copy YASR and its graph plugin pre-built files so they are included in the packaged extension
       const yasrBuild = path.resolve(__dirname, 'node_modules/@zazuko/yasr/build');
       for (const file of ['yasr.min.js', 'yasr.min.css']) {
         const src = path.join(yasrBuild, file);
@@ -108,7 +116,8 @@ async function main() {
     sourcesContent: false,
     platform: 'browser',
     outfile: 'dist/extension.browser.js',
-    external: ['vscode'],
+    // oxigraph uses Nodejs fs/path which are not available in the browser extension host
+    external: ['vscode', 'oxigraph'],
     define: { PACKAGE_VERSION: JSON.stringify(pkg.version) },
     logLevel: 'silent',
     plugins: [copyWasmPlugin, esbuildProblemMatcherPlugin],

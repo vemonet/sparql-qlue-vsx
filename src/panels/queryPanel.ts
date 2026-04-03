@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getNonce, querySparql } from '../utils';
 import { ExtensionState, DEFAULT_ENDPOINTS, BackendConfig } from '../state';
+import { localEndpoint } from '../localEndpoint';
 
 export class SparqlQueryPanel implements vscode.WebviewViewProvider {
   static readonly viewId = 'sparql-qlue.queryPanel';
@@ -23,7 +24,16 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
 
   private getSavedEndpoints(): string[] {
     const saved = this.state.getSavedEndpoints();
-    return saved.length > 0 ? saved : [...DEFAULT_ENDPOINTS];
+    const list = saved.length > 0 ? saved : [...DEFAULT_ENDPOINTS];
+    if (localEndpoint.isLoaded() && !list.includes(localEndpoint.url)) {
+      return [localEndpoint.url, ...list];
+    }
+    return list;
+  }
+
+  /** Refresh the endpoint list in the webview (call after local store state changes). */
+  refreshEndpoints(): void {
+    this.view?.webview.postMessage({ type: 'setEndpoints', endpoints: this.getSavedEndpoints() });
   }
 
   private async deleteEndpoint(url: string): Promise<void> {
@@ -197,12 +207,21 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
       this.activeAbortController = new AbortController();
       const queryStartTime = Date.now();
       try {
-        const accept =
-          queryType === 'CONSTRUCT' || queryType === 'DESCRIBE'
-            ? 'text/turtle, application/n-triples, application/ld+json'
-            : 'application/sparql-results+json';
-
-        const response = await querySparql(endpoint, query, this.activeAbortController.signal, accept);
+        let response: {
+          ok: boolean;
+          status: number;
+          headers: { get(h: string): string | null };
+          text(): Promise<string>;
+        };
+        if (endpoint === localEndpoint.url) {
+          response = localEndpoint.query(query, queryType);
+        } else {
+          const accept =
+            queryType === 'CONSTRUCT' || queryType === 'DESCRIBE'
+              ? 'text/turtle, application/n-triples, application/ld+json'
+              : 'application/sparql-results+json';
+          response = await querySparql(endpoint, query, this.activeAbortController.signal, accept);
+        }
         if (!response.ok) {
           const errorText = await response.text();
           this.view?.webview.postMessage({
@@ -213,12 +232,14 @@ export class SparqlQueryPanel implements vscode.WebviewViewProvider {
         }
         const contentType = response.headers.get('content-type') ?? '';
         const responseText = await response.text();
-        await this.saveEndpoint(endpoint);
-        // Persist the endpoint used for this specific file at workspace level
-        if (this.currentFileUri) {
-          const overrides = this.state.getFileEndpoints();
-          if (overrides[this.currentFileUri] !== endpoint) {
-            await this.state.setFileEndpoints({ ...overrides, [this.currentFileUri]: endpoint });
+        // Do not persist the local store endpoint to saved list or file overrides
+        if (endpoint !== localEndpoint.url) {
+          await this.saveEndpoint(endpoint);
+          if (this.currentFileUri) {
+            const overrides = this.state.getFileEndpoints();
+            if (overrides[this.currentFileUri] !== endpoint) {
+              await this.state.setFileEndpoints({ ...overrides, [this.currentFileUri]: endpoint });
+            }
           }
         }
         this.view?.webview.postMessage({ type: 'setEndpoints', endpoints: this.getSavedEndpoints() });

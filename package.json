@@ -109,6 +109,18 @@
         "title": "New SPARQL Query from Example",
         "category": "SPARQL Qlue",
         "icon": "$(file-add)"
+      },
+      {
+        "command": "sparql-qlue.addToLocalEndpoint",
+        "title": "Add to Local SPARQL Endpoint",
+        "category": "SPARQL Qlue",
+        "icon": "$(database)"
+      },
+      {
+        "command": "sparql-qlue.resetLocalEndpoint",
+        "title": "Reset Local SPARQL Endpoint",
+        "category": "SPARQL Qlue",
+        "icon": "$(trash)"
       }
     ],
     "semanticTokenTypes": [
@@ -234,6 +246,16 @@
         {
           "command": "sparql-qlue.newQueryFromExample",
           "when": "resourceExtname == .rq || resourceExtname == .sparql",
+          "group": "1_sparql@2"
+        },
+        {
+          "command": "sparql-qlue.addToLocalEndpoint",
+          "when": "resourceExtname == .ttl || resourceExtname == .nt || resourceExtname == .nq || resourceExtname == .trig || resourceExtname == .jsonld || resourceExtname == .json || resourceExtname == .rdf || resourceExtname == .xml",
+          "group": "1_sparql@1"
+        },
+        {
+          "command": "sparql-qlue.resetLocalEndpoint",
+          "when": "resourceExtname == .ttl || resourceExtname == .nt || resourceExtname == .nq || resourceExtname == .trig || resourceExtname == .jsonld || resourceExtname == .json || resourceExtname == .rdf || resourceExtname == .xml",
           "group": "1_sparql@2"
         }
       ]
@@ -470,7 +492,10 @@
   },
   "dependencies": {
     "@matdata/yasgui-graph-plugin": "^1.6.2",
+    "@types/jsonld": "^1.5.15",
     "@zazuko/yasr": "^4.6.1",
+    "jsonld": "^9.0.0",
+    "oxigraph": "^0.5.6",
     "qlue-ls": "^2.5.4",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",

@@ -89,6 +89,13 @@
       .endpoint-option.active {
         background: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.2));
       }
+      .endpoint-option.current {
+        border-left: 2px solid var(--vscode-focusBorder, var(--button-bg));
+        padding-left: 8px;
+      }
+      .endpoint-option.current .endpoint-option-label {
+        font-weight: 600;
+      }
       .endpoint-option-label {
         flex: 1;
         min-width: 0;
@@ -380,6 +387,7 @@
       let savedEndpoints = [];
       let activeIdx = -1;
       let isExecuting = false;
+      let fileEndpoint = '';
 
       function setExecuting(executing) {
         isExecuting = executing;
@@ -401,10 +409,15 @@
           endpointDropdown.classList.remove('open');
           return;
         }
-        for (let i = 0; i < items.length; i++) {
-          const url = items[i];
+        const sorted =
+          fileEndpoint && items.includes(fileEndpoint)
+            ? [fileEndpoint, ...items.filter((u) => u !== fileEndpoint)]
+            : items;
+        for (let i = 0; i < sorted.length; i++) {
+          const url = sorted[i];
+          const isCurrent = url === fileEndpoint;
           const div = document.createElement('div');
-          div.className = 'endpoint-option';
+          div.className = 'endpoint-option' + (isCurrent ? ' current' : '');
           div.dataset.url = url;
           div.addEventListener('mousedown', (e) => {
             if (e.target === del) return;
@@ -554,6 +567,7 @@
             currentQuery = msg.query || '';
             if (msg.endpoint) {
               endpointInput.value = msg.endpoint;
+              fileEndpoint = msg.endpoint;
             }
             clearStatus();
             if (msg.autoExecute) {
