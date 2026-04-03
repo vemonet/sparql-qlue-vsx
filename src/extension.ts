@@ -227,7 +227,9 @@ export async function activate(context: vscode.ExtensionContext) {
   // Command: Open server settings webview
   context.subscriptions.push(
     vscode.commands.registerCommand('sparql-qlue.openServerSettings', async () => {
-      SettingsPanel.createOrShow(context, lsServer, state, async (endpointUrl, config) => {
+      const doc = vscode.window.activeTextEditor?.document;
+      const activeEndpoint = (doc ? await getDocEndpoint(doc) : '') || currentEndpoint;
+      SettingsPanel.createOrShow(context, lsServer, state, activeEndpoint, async (endpointUrl, config) => {
         // onSaveEndpointBackend callback: persist the new/updated backend config
         const backends = state.getBackends();
         backends[endpointUrl] = config;

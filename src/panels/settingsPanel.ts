@@ -10,22 +10,23 @@ export class SettingsPanel {
     context: vscode.ExtensionContext,
     lsServer: SparqlLanguageServer,
     state: ExtensionState,
+    activeEndpointUrl?: string,
     onSaveEndpointBackend?: (endpointUrl: string, config: BackendConfig) => Promise<void>,
   ) {
-    const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
     if (SettingsPanel.currentPanel) {
-      SettingsPanel.currentPanel.reveal(column);
+      SettingsPanel.currentPanel.reveal(vscode.ViewColumn.Beside);
       SettingsPanel.currentPanel.webview.postMessage({
         type: 'set',
         settings: state.getSettings(),
         endpointBackends: state.getBackends(),
+        activeEndpointUrl: activeEndpointUrl ?? '',
       });
       return;
     }
     const panel = vscode.window.createWebviewPanel(
       'sparqlQlueSettings',
       'SPARQL Qlue Language Server Settings',
-      column || vscode.ViewColumn.One,
+      vscode.ViewColumn.Beside,
       {
         enableScripts: true,
         localResourceRoots: [],
@@ -38,6 +39,7 @@ export class SettingsPanel {
       context.extensionUri,
       state.getSettings(),
       state.getBackends(),
+      activeEndpointUrl ?? '',
     );
     panel.webview.onDidReceiveMessage(async (message) => {
       if (message.type === 'save') {
@@ -135,6 +137,7 @@ export class SettingsPanel {
     extensionUri: vscode.Uri,
     settings: unknown,
     endpointBackends: Record<string, BackendConfig>,
+    activeEndpointUrl: string,
   ): Promise<string> {
     const replacements: Record<string, string> = {
       __NONCE__: getNonce(),
@@ -142,6 +145,7 @@ export class SettingsPanel {
       __SETTINGS__: JSON.stringify(settings ?? {}),
       __ENDPOINT_BACKENDS__: JSON.stringify(endpointBackends ?? {}),
       __SETTINGS_FIELDS__: JSON.stringify(await SettingsPanel.getSettingsFields(extensionUri)),
+      __ACTIVE_ENDPOINT__: JSON.stringify(activeEndpointUrl),
     };
     const htmlUri = vscode.Uri.joinPath(extensionUri, 'dist', 'panels', 'settingsPanel.html');
     const htmlBytes = await vscode.workspace.fs.readFile(htmlUri);

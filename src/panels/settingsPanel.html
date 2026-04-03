@@ -393,6 +393,13 @@
         color: #ffd700;
         font-style: italic;
       }
+      .endpoint-item.active > .endpoint-header {
+        border-left: 3px solid var(--vscode-focusBorder, var(--button-bg));
+        padding-left: 9px;
+      }
+      .endpoint-item.active .endpoint-url {
+        font-weight: 700;
+      }
       .no-endpoints {
         color: var(--desc-fg);
         font-size: 0.88em;
@@ -502,6 +509,7 @@
       const vscode = acquireVsCodeApi();
       const initial = __SETTINGS__;
       const initialEndpointBackends = __ENDPOINT_BACKENDS__;
+      let activeEndpointUrl = __ACTIVE_ENDPOINT__;
 
       // Field definitions injected from package.json at panel load time
       const settings = __SETTINGS_FIELDS__;
@@ -698,7 +706,11 @@
       function renderEndpoints(backends) {
         const container = document.getElementById('endpoints-section');
         container.innerHTML = '';
-        const urls = Object.keys(backends);
+        const allUrls = Object.keys(backends);
+        const urls =
+          activeEndpointUrl && allUrls.includes(activeEndpointUrl)
+            ? [activeEndpointUrl, ...allUrls.filter((u) => u !== activeEndpointUrl)]
+            : allUrls;
         if (urls.length === 0) {
           const p = document.createElement('p');
           p.className = 'no-endpoints';
@@ -711,7 +723,7 @@
 
           // Build structure via DOM (avoids any id/selector escaping issues with URLs)
           const item = document.createElement('div');
-          item.className = 'endpoint-item';
+          item.className = 'endpoint-item' + (url === activeEndpointUrl ? ' active' : '');
 
           const header = document.createElement('div');
           header.className = 'endpoint-header';
@@ -787,6 +799,12 @@
           item.appendChild(header);
           item.appendChild(body);
           container.appendChild(item);
+
+          // Auto-expand the active endpoint
+          if (url === activeEndpointUrl) {
+            body.classList.add('open');
+            chevron.classList.add('open');
+          }
 
           // Toggle open/close
           header.addEventListener('click', () => {
@@ -884,6 +902,7 @@
         const msg = event.data;
         if (msg.type === 'set') {
           if (msg.settings) applySettings(msg.settings);
+          if (msg.activeEndpointUrl !== undefined) activeEndpointUrl = msg.activeEndpointUrl;
           if (msg.endpointBackends) {
             // Replace endpointBackends in place
             for (const key of Object.keys(endpointBackends)) delete endpointBackends[key];
