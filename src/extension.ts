@@ -412,10 +412,21 @@ export async function activate(context: vscode.ExtensionContext) {
           `SPARQL Qlue: Failed to apply saved settings: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
-      // Seed backend for the already-open SPARQL file (if any)
+      // Seed the backend for the active SPARQL file, or fall back to the most recently
+      // used persisted endpoint so the LS always starts with a backend configured.
       const activeEditor = vscode.window.activeTextEditor;
+      let seedEndpoint = '';
       if (activeEditor?.document.languageId === 'sparql') {
-        await useDocEndpoint(activeEditor.document);
+        seedEndpoint = await getDocEndpoint(activeEditor.document);
+      }
+      if (!seedEndpoint) {
+        // No endpoint from the file, restore the last known endpoint from persisted state
+        const backends = state.getBackends();
+        const saved = state.getSavedEndpoints();
+        seedEndpoint = saved.find((url) => backends[url]) ?? Object.keys(backends)[0] ?? '';
+      }
+      if (seedEndpoint) {
+        await useBackend(seedEndpoint);
       }
     })
     .catch((err: unknown) => {

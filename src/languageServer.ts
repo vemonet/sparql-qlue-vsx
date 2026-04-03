@@ -26,6 +26,8 @@ class WasmLanguageClient extends BaseLanguageClient {
 
 export class SparqlLanguageServer {
   private _client: WasmLanguageClient | undefined;
+  private _ready = false;
+  private _pending: { endpoint: string; config: BackendConfig } | undefined;
 
   /** Initialise the WASM module and start the LSP client. */
   async start(context: vscode.ExtensionContext): Promise<void> {
@@ -108,6 +110,12 @@ export class SparqlLanguageServer {
     );
     await this._client.start();
     context.subscriptions.push(this._client);
+    this._ready = true;
+    if (this._pending) {
+      const { endpoint, config } = this._pending;
+      this._pending = undefined;
+      await this.useBackend(endpoint, config);
+    }
   }
 
   // /** Returns the underlying LanguageClient. Throws if called before start(). */
@@ -128,17 +136,19 @@ export class SparqlLanguageServer {
    * @param config   Optional prefix map and completion queries for the backend.
    */
   async useBackend(endpoint: string, config: BackendConfig): Promise<void> {
-    if (!this._client) {
+    if (!this._ready) {
+      // Queue the call -- will be flushed once start() completes
+      this._pending = { endpoint, config };
       return;
     }
-    await this._client.sendNotification('qlueLs/addBackend', {
+    await this._client?.sendNotification('qlueLs/addBackend', {
       name: endpoint,
       url: endpoint,
       default: true,
       prefixMap: config.prefixMap,
       queries: config.queries,
     });
-    await this._client.sendNotification('qlueLs/updateDefaultBackend', { backendName: endpoint });
+    await this._client?.sendNotification('qlueLs/updateDefaultBackend', { backendName: endpoint });
   }
 
   /** Push updated settings to the language server. */
