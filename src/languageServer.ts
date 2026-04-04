@@ -137,7 +137,7 @@ export class SparqlLanguageServer {
    */
   async useBackend(endpoint: string, config: BackendConfig): Promise<void> {
     if (!this._ready) {
-      // Queue the call -- will be flushed once start() completes
+      // Queue the call, will be flushed once start() completes
       this._pending = { endpoint, config };
       return;
     }

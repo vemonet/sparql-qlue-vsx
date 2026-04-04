@@ -15,7 +15,7 @@ import { SearchIndex, type SearchDoc } from './searchIndex';
 import { registerTools } from './tools';
 import { localEndpoint } from './localEndpoint';
 
-const lsServer = new SparqlLanguageServer();
+const languageServer = new SparqlLanguageServer();
 let queryPanel: SparqlQueryPanel;
 let extensionContext: vscode.ExtensionContext;
 let state: ExtensionState;
@@ -106,15 +106,15 @@ async function useBackend(endpointUrl: string): Promise<void> {
   }
   const backends = state.getBackends();
   let backend = backends[endpointUrl];
-  if (!backend) {
-    const prefixMap = buildPrefixMap(
-      await fetchEndpointPrefixes(endpointUrl, state.getSettings().timeoutMs as number | undefined),
-    );
-    backend = { prefixMap, queries: DEFAULT_COMPLETION_QUERIES };
+  const isNew = !backend;
+  if (isNew) {
+    // Bootstrap with default prefixes immediately so the LS is usable right away.
+    // Real prefixes and indexing data are fetched in the background below.
+    backend = { prefixMap: buildPrefixMap({}), queries: DEFAULT_COMPLETION_QUERIES };
     await state.setBackends({ ...state.getBackends(), [endpointUrl]: backend });
   }
   try {
-    await lsServer.useBackend(endpointUrl, backend);
+    await languageServer.useBackend(endpointUrl, backend);
   } catch (err) {
     vscode.window.showErrorMessage(
       `SPARQL Qlue: Failed to configure backend for ${endpointUrl}: ${err instanceof Error ? err.message : String(err)}`,
@@ -123,40 +123,41 @@ async function useBackend(endpointUrl: string): Promise<void> {
   }
   queryPanel?.setActiveBackendUrl(endpointUrl, backend);
 
-  // Build in-memory search index if not already present
-  if (!searchIndex.hasEndpoint(endpointUrl)) {
-    const current = state.getBackends()[endpointUrl];
-    if (current.examples !== undefined || current.classSchemas !== undefined) {
-      // All data already stored — index immediately
-      indexBackend(endpointUrl, current);
-      queryPanel?.setActiveBackendUrl(endpointUrl, current);
-    } else {
-      // Fetch missing data in the background
-      void vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: `Indexing endpoint ${endpointUrl}…`,
-          cancellable: false,
-        },
-        async () => {
-          const timeoutMs = (state.getSettings().completion as Record<string, unknown>)?.timeoutMs as
-            | number
-            | undefined;
-          const [examples, classSchemas] = await Promise.all([
-            current.examples ?? fetchEndpointExamples(endpointUrl, timeoutMs),
-            current.classSchemas ?? fetchEndpointClasses(endpointUrl, timeoutMs),
-          ]);
-          const updated: BackendConfig = { ...current, examples, classSchemas };
-          await state.setBackends({ ...state.getBackends(), [endpointUrl]: updated });
-          indexBackend(endpointUrl, updated);
-          queryPanel?.setActiveBackendUrl(endpointUrl, updated);
-          vscode.window.showInformationMessage(
-            `Indexed SPARQL endpoint ${endpointUrl}\n${examples.length} examples · ${classSchemas.length} class schemas · ${Object.keys(updated.prefixMap).length} prefixes`,
-          );
-        },
-      );
-    }
+  // Fetch metadata in the background when needed, without blocking the caller
+  const needsIndex = !searchIndex.hasEndpoint(endpointUrl);
+  if (isNew || needsIndex) {
+    void fetchBackendMetadata(endpointUrl, isNew);
   }
+}
+
+/** Fetch prefixes, examples, and class schemas for an endpoint in the background.
+ * Updates state, re-registers the LS backend if prefixes changed, and rebuilds the search index. */
+async function fetchBackendMetadata(endpointUrl: string, fetchPrefixes: boolean): Promise<void> {
+  const timeoutMs = (state.getSettings().completion as Record<string, unknown>)?.timeoutMs as number | undefined;
+  void vscode.window.withProgress(
+    { location: vscode.ProgressLocation.Window, title: `Indexing ${endpointUrl}…` },
+    async () => {
+      const current = state.getBackends()[endpointUrl];
+      if (!current) {
+        return;
+      }
+      const [rawPrefixes, examples, classSchemas] = await Promise.all([
+        fetchPrefixes ? fetchEndpointPrefixes(endpointUrl, timeoutMs) : Promise.resolve(null),
+        current.examples ?? fetchEndpointExamples(endpointUrl, timeoutMs),
+        current.classSchemas ?? fetchEndpointClasses(endpointUrl, timeoutMs),
+      ]);
+      const prefixMap = rawPrefixes !== null ? buildPrefixMap(rawPrefixes) : current.prefixMap;
+      const updated: BackendConfig = { ...current, prefixMap, examples, classSchemas };
+      await state.setBackends({ ...state.getBackends(), [endpointUrl]: updated });
+      if (rawPrefixes !== null) {
+        // Re-register with the LS now that we have real prefixes
+        await languageServer.useBackend(endpointUrl, updated).catch(() => {});
+        queryPanel?.setActiveBackendUrl(endpointUrl, updated);
+      }
+      indexBackend(endpointUrl, updated);
+      queryPanel?.setActiveBackendUrl(endpointUrl, updated);
+    },
+  );
 }
 
 /** Activate the extension, main starting point. */
@@ -229,7 +230,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('sparql-qlue.openServerSettings', async () => {
       const doc = vscode.window.activeTextEditor?.document;
       const activeEndpoint = (doc ? await getDocEndpoint(doc) : '') || currentEndpoint;
-      SettingsPanel.createOrShow(context, lsServer, state, activeEndpoint, async (endpointUrl, config) => {
+      SettingsPanel.createOrShow(context, languageServer, state, activeEndpoint, async (endpointUrl, config) => {
         // onSaveEndpointBackend callback: persist the new/updated backend config
         const backends = state.getBackends();
         backends[endpointUrl] = config;
@@ -391,7 +392,7 @@ export async function activate(context: vscode.ExtensionContext) {
         e.affectsConfiguration('sparql-qlue.completion') ||
         e.affectsConfiguration('sparql-qlue.prefixes')
       ) {
-        lsServer.updateSettings(state.getSettings()).catch((err: unknown) => {
+        languageServer.updateSettings(state.getSettings()).catch((err: unknown) => {
           vscode.window.showErrorMessage(
             `SPARQL Qlue: Failed to apply settings: ${err instanceof Error ? err.message : String(err)}`,
           );
@@ -400,12 +401,12 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  lsServer
+  languageServer
     .start(context)
     .then(async () => {
       // Apply current settings (from VS Code configuration) so the LS starts with the right config
       try {
-        await lsServer.updateSettings(state.getSettings());
+        await languageServer.updateSettings(state.getSettings());
       } catch (err) {
         // Non-fatal — settings will be re-applied when user opens the settings panel
         vscode.window.showWarningMessage(
@@ -442,5 +443,5 @@ export function deactivate(): Promise<void> | undefined {
   if (queryPanel) {
     queryPanel.dispose();
   }
-  return lsServer.stop();
+  return languageServer.stop();
 }

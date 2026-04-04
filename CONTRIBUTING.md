@@ -38,9 +38,11 @@ Bump the version in `package.json`: `patch` | `minor` | `major`
 npm version patch
 ```
 
+> [!NOTE]
+>
 > This will automatically update the changelog, create a git tag, package, and publish.
 
-> [!NOTE]
+> [!IMPORTANT]
 >
 > Get a VS Code Marketplace PAT from [Azure DevOps](https://dev.azure.com), and an Open VSX token from [open-vsx.org/user-settings/tokens](https://open-vsx.org/user-settings/tokens).
 
@@ -48,12 +50,15 @@ npm version patch
 
 To do:
 
+- [ ] Instead of having all general settings in the settings panel we should just have the backends config, and a link to SPARQL Qlue settings in VSCode.
 - [ ] Support `qlue-ls.toml`: If present at root of project, load settings from there. When changes are made in settings tab. Edit the `qlue-ls.toml` if one, or editor settings. Otherwise we could simplify the system by not including settings there, and just putting backends config.
-- [ ] When opening the Settings panel from a given query put the backend used by current query first of the list and highlighted (should be clear it is the current backend)
 - [ ] When we store the class schema should we store it as a formatted string? So we can also easily support extracting and using SHACL/ShEx shapes without having to parse them. Migrate to SHACL shapes generated with with shapetrospection
 - [ ] Make the fetch request sent for executing the SPARQL query configurable at the endpoint level: GET/POST, headers, basic auth. It can all be configured in a new section inside the backend expand
 - [ ] Enable to have backend profiles with a set of pre-optimized completion queries for a given triplestore/ontology.
-- [ ] Make it so format put all comments `#+` at the start of the query (in qlue-ls)
+- [ ] In qlue-ls
+  - [ ] `uvx qlue-ls format` should support reading `qlue-ls.toml` file auto when present, or to pass custom config with optional `--config`
+  - [ ] `uvx qlue-ls format **/*.rq` should work
+  - [ ] Make it so format put all comments `#+` at the start of the query
 
 Run tests:
 
