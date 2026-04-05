@@ -48,94 +48,20 @@
         color: var(--desc-fg);
         margin: 22px 0 6px;
       }
-      .section {
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 12px;
-        border-bottom: 1px solid var(--border);
-        gap: 12px;
-      }
-      .row:last-child {
-        border-bottom: none;
-      }
-      .label {
-        flex: 1;
-        min-width: 0;
-      }
-      .label-name {
-        font-weight: 500;
-        font-family: var(--vscode-editor-font-family, monospace);
-        font-size: 0.95em;
-      }
-      .label-desc {
-        font-size: 0.82em;
-        color: var(--desc-fg);
-        margin-top: 1px;
-      }
-      .control {
-        flex-shrink: 0;
-      }
-
-      /* Toggle switch */
-      .toggle {
-        position: relative;
+      /* Open settings link */
+      .open-settings-link {
         display: inline-block;
-        width: 38px;
-        height: 21px;
-      }
-      .toggle input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-        margin: 0;
-      }
-      .toggle-slider {
-        position: absolute;
+        margin: 0 0 14px;
+        font-size: 0.88em;
+        color: var(--vscode-textLink-foreground, #4daafc);
         cursor: pointer;
-        inset: 0;
-        background: var(--input-border);
-        border-radius: 21px;
-        transition: background 0.15s;
+        background: none;
+        border: none;
+        padding: 0;
+        text-decoration: underline;
       }
-      .toggle-slider::before {
-        content: '';
-        position: absolute;
-        width: 15px;
-        height: 15px;
-        left: 3px;
-        top: 3px;
-        background: white;
-        border-radius: 50%;
-        transition: transform 0.15s;
-      }
-      .toggle input:checked + .toggle-slider {
-        background: var(--button-bg);
-      }
-      .toggle input:checked + .toggle-slider::before {
-        transform: translateX(17px);
-      }
-
-      /* Number input */
-      input[type='number'] {
-        width: 86px;
-        padding: 4px 8px;
-        background: var(--input-bg);
-        color: var(--input-fg);
-        border: 1px solid var(--input-border);
-        border-radius: 3px;
-        font-size: inherit;
-        font-family: inherit;
-        text-align: right;
-      }
-      input[type='number']:focus {
-        outline: 1px solid var(--button-bg);
-        outline-offset: -1px;
+      .open-settings-link:hover {
+        opacity: 0.8;
       }
 
       /* Endpoints section */
@@ -428,24 +354,6 @@
         background: var(--button-hover);
       }
 
-      /* Reset all button */
-      .reset-all-btn {
-        background: none;
-        color: var(--input-border);
-        border: 1px solid var(--input-border);
-        border-radius: 4px;
-        padding: 5px 14px;
-        margin: 12px 0 0;
-        font-size: 0.85em;
-        cursor: pointer;
-        opacity: 0.5;
-      }
-      .reset-all-btn:hover {
-        opacity: 0.9;
-        color: var(--desc-fg);
-        border-color: var(--desc-fg);
-      }
-
       /* Acknowledgements */
       .ack {
         font-size: 0.85em;
@@ -465,30 +373,19 @@
   <body>
     <button id="float-save-btn" class="float-save-btn">💾 Save changes</button>
 
-    <h1>SPARQL Qlue Language Server Settings</h1>
+    <h1>SPARQL Qlue Settings</h1>
 
-    <h2>Endpoint backends</h2>
+    <h2>Endpoint Backends</h2>
     <div id="endpoints-section"></div>
 
-    <h2>General</h2>
-    <div class="section" id="gen-section"></div>
+    <h2>Language Server Settings</h2>
+    <p class="ack">
+      To configure settings for formatting, completion, and prefixes:
+      <button id="open-settings-btn" class="open-settings-link">
+        Open the SPARQL Qlue extension VSCode settings &rarr;
+      </button>
+    </p>
 
-    <h2>Format</h2>
-    <div class="section" id="fmt-section"></div>
-
-    <h2>Completion</h2>
-    <div class="section" id="cmp-section"></div>
-
-    <h2>Prefixes</h2>
-    <div class="section" id="pfx-section"></div>
-
-    <button
-      id="reset-all-btn"
-      class="reset-all-btn"
-      title="Reset all saved endpoints, backends, and extension settings to their defaults"
-    >
-      ↺ Reset settings
-    </button>
     <h2>Acknowledgements</h2>
     <p class="ack">
       Diagnostics, autocomplete, and formatting powered by the
@@ -507,52 +404,8 @@
 
     <script nonce="__NONCE__">
       const vscode = acquireVsCodeApi();
-      const initial = __SETTINGS__;
       const initialEndpointBackends = __ENDPOINT_BACKENDS__;
       let activeEndpointUrl = __ACTIVE_ENDPOINT__;
-
-      // Field definitions injected from package.json at panel load time
-      const settings = __SETTINGS_FIELDS__;
-
-      // Map from section id prefix → TOML key
-      const SECTION_KEYS = { gen: 'general', fmt: 'format', cmp: 'completion', pfx: 'prefixes' };
-
-      // FIELDS[sectionPrefix] = [[key, type, description], ...]
-      const FIELDS = {
-        gen: settings.general.map((f) => [f.key, f.type, f.description]),
-        fmt: settings.format.map((f) => [f.key, f.type, f.description]),
-        cmp: settings.completion.map((f) => [f.key, f.type, f.description]),
-        pfx: settings.prefixes.map((f) => [f.key, f.type, f.description]),
-      };
-
-      const DEFAULTS = {
-        general: Object.fromEntries(settings.general.map((f) => [f.key, f.default])),
-        format: Object.fromEntries(settings.format.map((f) => [f.key, f.default])),
-        completion: Object.fromEntries(settings.completion.map((f) => [f.key, f.default])),
-        prefixes: Object.fromEntries(settings.prefixes.map((f) => [f.key, f.default])),
-      };
-
-      function renderSection(sectionPrefix) {
-        const container = document.getElementById(`${sectionPrefix}-section`);
-        const tomlKey = SECTION_KEYS[sectionPrefix];
-        const values = Object.assign({}, DEFAULTS[tomlKey], (initial || {})[tomlKey] || {});
-        for (const [key, type, desc] of FIELDS[sectionPrefix]) {
-          const val = values[key];
-          const row = document.createElement('div');
-          row.className = 'row';
-          const control =
-            type === 'bool'
-              ? `<label class="toggle"><input type="checkbox" id="${sectionPrefix}_${key}" ${val ? 'checked' : ''}><span class="toggle-slider"></span></label>`
-              : `<input type="number" id="${sectionPrefix}_${key}" value="${val ?? 0}">`;
-          row.innerHTML = `
-          <div class="label">
-            <div class="label-name">${key}</div>
-            <div class="label-desc">${desc}</div>
-          </div>
-          <div class="control">${control}</div>`;
-          container.appendChild(row);
-        }
-      }
 
       // ── SPARQL syntax highlighter ──────────────────────────────────────
 
@@ -839,69 +692,15 @@
       }
 
       renderEndpoints(endpointBackends);
-      renderSection('gen');
-      renderSection('fmt');
-      renderSection('cmp');
-      renderSection('pfx');
 
-      function readSection(sectionPrefix) {
-        const tomlKey = SECTION_KEYS[sectionPrefix];
-        const out = {};
-        for (const [key, type] of FIELDS[sectionPrefix]) {
-          const el = document.getElementById(`${sectionPrefix}_${key}`);
-          if (!el) continue;
-          out[key] = type === 'bool' ? el.checked : Number(el.value);
-        }
-        return out;
-      }
-
-      function applySettings(s) {
-        for (const [prefix, tomlKey] of Object.entries(SECTION_KEYS)) {
-          const sec = (s || {})[tomlKey] || {};
-          for (const [key, type] of FIELDS[prefix]) {
-            const el = document.getElementById(`${prefix}_${key}`);
-            if (!el || !(key in sec)) continue;
-            if (type === 'bool') el.checked = Boolean(sec[key]);
-            else el.value = String(sec[key]);
-          }
-        }
-      }
-
-      function saveAllSettings() {
-        vscode.postMessage({
-          type: 'save',
-          settings: {
-            general: readSection('gen'),
-            format: readSection('fmt'),
-            completion: readSection('cmp'),
-            prefixes: readSection('pfx'),
-          },
-        });
-      }
-
-      // Checkboxes save immediately; number fields debounce to avoid saving mid-typing
-      let autoSaveTimer;
-      function scheduleAutoSave() {
-        clearTimeout(autoSaveTimer);
-        autoSaveTimer = setTimeout(saveAllSettings, 400);
-      }
-
-      document.querySelectorAll('.section input[type="checkbox"]').forEach((el) => {
-        el.addEventListener('change', saveAllSettings);
-      });
-      document.querySelectorAll('.section input[type="number"]').forEach((el) => {
-        el.addEventListener('input', scheduleAutoSave);
+      document.getElementById('open-settings-btn').addEventListener('click', () => {
+        vscode.postMessage({ type: 'openVscodeSettings' });
       });
 
-      document.getElementById('reset-all-btn').addEventListener('click', () => {
-        vscode.postMessage({ type: 'resetAll' });
-      });
-
-      // Accept settings pushed from the extension when the panel is revealed
+      // Accept updates pushed from the extension when the panel is revealed
       window.addEventListener('message', (event) => {
         const msg = event.data;
         if (msg.type === 'set') {
-          if (msg.settings) applySettings(msg.settings);
           if (msg.activeEndpointUrl !== undefined) activeEndpointUrl = msg.activeEndpointUrl;
           if (msg.endpointBackends) {
             // Replace endpointBackends in place

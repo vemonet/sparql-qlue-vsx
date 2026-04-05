@@ -42,19 +42,6 @@ export class ExtensionState {
     };
   }
 
-  async setSettings(settings: Record<string, unknown>): Promise<void> {
-    const config = vscode.workspace.getConfiguration('sparql-qlue');
-    const updates: Promise<void>[] = [];
-    for (const [section, values] of Object.entries(settings)) {
-      if (values && typeof values === 'object') {
-        for (const [key, value] of Object.entries(values as Record<string, unknown>)) {
-          updates.push(Promise.resolve(config.update(`${section}.${key}`, value, vscode.ConfigurationTarget.Global)));
-        }
-      }
-    }
-    await Promise.all(updates);
-  }
-
   // ── Global state ────────────────────────────────────────────────────────────
 
   getBackends(): Record<string, BackendConfig> {
@@ -71,35 +58,6 @@ export class ExtensionState {
 
   async setSavedEndpoints(endpoints: string[]): Promise<void> {
     await this.ctx.globalState.update('sparql-qlue.savedEndpoints', endpoints);
-  }
-
-  async resetAll(): Promise<void> {
-    await this.ctx.globalState.update('sparql-qlue.endpointBackends', undefined);
-    await this.ctx.globalState.update('sparql-qlue.savedEndpoints', undefined);
-    await this.ctx.workspaceState.update('sparql-qlue.fileEndpoints', undefined);
-    const config = vscode.workspace.getConfiguration('sparql-qlue');
-    const keys = [
-      'format.alignPredicates',
-      'format.alignPrefixes',
-      'format.separatePrologue',
-      'format.capitalizeKeywords',
-      'format.insertSpaces',
-      'format.tabSize',
-      'format.whereNewLine',
-      'format.filterSameLine',
-      'format.lineLength',
-      'format.contractTriples',
-      'format.keepEmptyLines',
-      'completion.timeoutMs',
-      'completion.resultSizeLimit',
-      'completion.subjectCompletionTriggerLength',
-      'completion.objectCompletionSuffix',
-      'completion.variableCompletionLimit',
-      'completion.sameSubjectSemicolon',
-      'prefixes.addMissing',
-      'prefixes.removeUnused',
-    ];
-    await Promise.all(keys.map((k) => config.update(k, undefined, vscode.ConfigurationTarget.Global)));
   }
 
   // ── Workspace state ──────────────────────────────────────────────────────────

@@ -57,7 +57,7 @@ To do:
 - [ ] Enable to have backend profiles with a set of pre-optimized completion queries for a given triplestore/ontology.
 - [ ] In qlue-ls
   - [ ] `uvx qlue-ls format` should support reading `qlue-ls.toml` file auto when present, or to pass custom config with optional `--config`
-  - [ ] `uvx qlue-ls format **/*.rq` should work
+  - [ ] `uvx qlue-ls format *.rq` should work
   - [ ] Make it so format put all comments `#+` at the start of the query
 
 Run tests:
