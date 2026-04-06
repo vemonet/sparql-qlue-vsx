@@ -20,6 +20,7 @@ let queryPanel: SparqlQueryPanel;
 let extensionContext: vscode.ExtensionContext;
 let state: ExtensionState;
 let currentEndpoint = '';
+let statusBarItem: vscode.StatusBarItem;
 
 /** In-memory search index for all indexed endpoints. */
 const searchIndex = new SearchIndex();
@@ -27,6 +28,35 @@ const searchIndex = new SearchIndex();
 function localName(iri: string): string {
   const i = Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/'));
   return i >= 0 ? iri.slice(i + 1) : iri;
+}
+
+function updateStatusBar(): void {
+  if (!statusBarItem) {
+    return;
+  }
+  const backends = state.getBackends();
+  const backend = currentEndpoint ? backends[currentEndpoint] : undefined;
+  const prefixCount = backend ? Object.keys(backend.prefixMap).length : 0;
+  const exampleCount = backend?.examples?.length ?? 0;
+  const classCount = backend?.classSchemas ? new Set(backend.classSchemas.map((cs) => cs.subjectClass)).size : 0;
+
+  const md = new vscode.MarkdownString('', true);
+  md.isTrusted = true;
+  md.supportThemeIcons = true;
+  md.appendMarkdown(`### $(database) SPARQL Qlue active backend\n\n`);
+  md.appendMarkdown(`---\n\n`);
+  md.appendMarkdown(`${currentEndpoint ? `**${currentEndpoint}**` : '_No backend configured_'}\n\n`);
+  md.appendMarkdown(`&nbsp;&nbsp;$(symbol-namespace) **${prefixCount}** prefixes\n\n`);
+  md.appendMarkdown(`&nbsp;&nbsp;$(code) **${exampleCount}** example queries\n\n`);
+  md.appendMarkdown(`&nbsp;&nbsp;$(symbol-class) **${classCount}** classes\n\n`);
+  md.appendMarkdown(`---\n\n`);
+  md.appendMarkdown(`[$(play) Execute Query](command:sparql-qlue.executeQuery)&nbsp;&nbsp;&nbsp;`);
+  md.appendMarkdown(`[$(output) Query Panel](command:sparql-qlue.showQueryPanel)&nbsp;&nbsp;&nbsp;`);
+  if (exampleCount > 0) {
+    md.appendMarkdown(`[$(code) Examples](command:sparql-qlue.showExamplesQuickPick)&nbsp;&nbsp;&nbsp;`);
+  }
+  md.appendMarkdown(`[$(gear) Settings](command:sparql-qlue.openServerSettings)`);
+  statusBarItem.tooltip = md;
 }
 
 /** Build docs for a backend and add them to the shared search index under the given endpoint. */
@@ -37,7 +67,7 @@ function indexBackend(endpointUrl: string, backend: BackendConfig): void {
       type: 'example',
       label: ex.comment,
       keywords: `${ex.comment} ${ex.query}`.toLowerCase(),
-      formatted: `### ${ex.comment}\n\`\`\`sparql\n${ex.query}\n\`\`\``,
+      formatted: `### ${ex.comment}\n\`\`\`sparql\n#+ endpoint: ${endpointUrl}\n${ex.query}\n\`\`\``,
     });
   }
   // Group class schemas by subjectClass
@@ -98,6 +128,7 @@ async function useBackend(endpointUrl: string): Promise<void> {
     return;
   }
   currentEndpoint = endpointUrl;
+  updateStatusBar();
 
   // Local Oxigraph store: no LS registration or remote prefix/example fetching
   if (endpointUrl === localEndpoint.url) {
@@ -156,6 +187,9 @@ async function fetchBackendMetadata(endpointUrl: string, fetchPrefixes: boolean)
       }
       indexBackend(endpointUrl, updated);
       queryPanel?.setActiveBackendUrl(endpointUrl, updated);
+      if (endpointUrl === currentEndpoint) {
+        updateStatusBar();
+      }
     },
   );
 }
@@ -172,6 +206,14 @@ export async function activate(context: vscode.ExtensionContext) {
       SPARQL_LEGEND,
     ),
   );
+  // Status bar item (bottom-right) — hover shows backend info, click opens settings
+  statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 101);
+  statusBarItem.name = 'SPARQL Qlue';
+  statusBarItem.text = '$(database) SPARQL Qlue';
+  statusBarItem.command = 'sparql-qlue.openServerSettings';
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
+
   // Register the query panel as a WebviewViewProvider (shown in the bottom panel)
   queryPanel = new SparqlQueryPanel(context);
   queryPanel.onEndpointChange = useBackend;
@@ -222,6 +264,35 @@ export async function activate(context: vscode.ExtensionContext) {
       const query = document ? document.getText() : '';
       const endpoint = document ? await getDocEndpoint(document) : '';
       queryPanel.show(query, endpoint, false, document?.uri.toString());
+    }),
+  );
+
+  // Command: Show examples QuickPick for the current endpoint
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sparql-qlue.showExamplesQuickPick', async () => {
+      const examples = currentEndpoint ? (state.getBackends()[currentEndpoint]?.examples ?? []) : [];
+      if (examples.length === 0) {
+        vscode.window.showInformationMessage(
+          currentEndpoint ? `No examples indexed for ${currentEndpoint}.` : 'No backend active.',
+        );
+        return;
+      }
+      const picked = await vscode.window.showQuickPick(
+        examples.map((ex) => ({
+          label: ex.comment,
+          detail: ex.query.replace(/\s+/g, ' ').slice(0, 120),
+          query: ex.query,
+        })),
+        { placeHolder: `Pick an example from ${currentEndpoint}`, matchOnDetail: true },
+      );
+      if (!picked) {
+        return;
+      }
+      const doc = await vscode.workspace.openTextDocument({
+        language: 'sparql',
+        content: `#+ endpoint: ${currentEndpoint}\n${picked.query}`,
+      });
+      await vscode.window.showTextDocument(doc);
     }),
   );
 

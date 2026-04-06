@@ -111,6 +111,12 @@
         "icon": "$(file-add)"
       },
       {
+        "command": "sparql-qlue.showExamplesQuickPick",
+        "title": "Show Examples for Current Endpoint",
+        "category": "SPARQL Qlue",
+        "icon": "$(code)"
+      },
+      {
         "command": "sparql-qlue.addToLocalEndpoint",
         "title": "Add to Local SPARQL Endpoint",
         "category": "SPARQL Qlue",
@@ -210,14 +216,9 @@
           "group": "navigation@2"
         },
         {
-          "command": "sparql-qlue.newQueryFromExample",
-          "when": "resourceLangId == sparql",
-          "group": "navigation@3"
-        },
-        {
           "command": "sparql-qlue.openServerSettings",
           "when": "resourceLangId == sparql",
-          "group": "navigation@4"
+          "group": "navigation@3"
         }
       ],
       "editor/context": [

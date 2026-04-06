@@ -1,12 +1,12 @@
 # 🫆 SPARQL Qlue
 
-A Visual Studio Code extension that provides support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), using the **[qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server:
+A Visual Studio Code extension that provides support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), using the **[Qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server:
 
-- **Language intelligence**: autocomplete, diagnostics, hover info
+- **Language intelligence**: relevant autocomplete, diagnostics, hover info
 - **Query quality**: formatting, refactoring, code actions
-- **Syntax highlighting** using semantic tokens to adapt to themes
+- **Syntax highlighting** with semantic tokens to adapt to themes
 - **Query execution & results inspection** with the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component, against remote endpoints, or a local embedded [oxigraph](https://github.com/oxigraph/oxigraph) triplestore
-- **Configuration** of the language server
+- **Configuration** of the language server (queries used for completion, formatting behavior, etc)
 
 ## Installation
 
@@ -14,7 +14,7 @@ Install this extension from the [Visual Studio Marketplace](https://marketplace.
 
 ## Usage
 
-Once installed in Visual Studio Code, SPARQL Qlue will automatically execute when you open or edit a `.rq` or `.sparql` file.
+Once installed in Visual Studio Code, SPARQL Qlue will automatically run when you open or edit a `.rq` or `.sparql` file.
 
 Completion and hover requires a target endpoint URL (a `Backend` for Qlue-ls). It can be provided through different ways:
 
@@ -28,37 +28,38 @@ Completion and hover requires a target endpoint URL (a `Backend` for Qlue-ls). I
 
 ### Qlue-ls Language Server
 
-This extension uses the [qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server compiled to WebAssembly, running in-process.
+This extension uses the [Qlue-ls](https://github.com/IoannisNezis/Qlue-ls) language server compiled to WebAssembly, running in-process.
 
-- **Context-aware autocomplete**: suggests subjects, predicates, and objects based on your SPARQL endpoint and the current query context
+- **Context-aware autocomplete**: suggests subjects, predicates, and objects based on the SPARQL endpoint content and the current query context, by running a SPARQL query to explore available options
 - **Hover information**: shows labels and descriptions for IRIs by querying the endpoint
 - **Diagnostics**: reports syntax errors and warnings as you type
-- **Auto-formatting**: formats SPARQL documents
-- **Code actions**: quick fixes for common issues
+- **Auto-formatting**: formats SPARQL documents, configurable
+- **Code actions**: quick fixes for common issues, e.g. contract triples with the same subject
 
 ![Screenshot extension](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot.png)
 
 ### Query Execution
 
-Run the active query with **Ctrl+Enter** / **Cmd+Enter**, the **▶** file header button, or **right-click → Execute SPARQL Query**
+Run the opened query file with **Ctrl+Enter** / **Cmd+Enter**, the **▶** file header button, or **right-click → Execute SPARQL Query**
 
-The endpoint URL is automatically resolved from a `#+ endpoint: <url>` comment in the file, or from an `endpoint.txt` file in the same directory or any parent up to the workspace root. It can also be changed in a text input in the UI
+The endpoint URL is automatically resolved from a `#+ endpoint: <url>` comment in the file, or from an `endpoint.txt` file in the same directory or any parent up to the workspace root. It can also be changed in a text input in the UI.
 
-You can add RDF files (e.g. `.ttl`, `.trig`, `.jsonld`, etc) to a local embedded [oxigraph](https://github.com/oxigraph/oxigraph) SPARQL endpoint by right clicking RDF files in the explorer. Then execute the queries against this embedded endpoint using the `local://sparql-endpoint` URL
+You can add RDF files (e.g. `.ttl`, `.trig`, `.jsonld`, etc) to a local embedded [oxigraph](https://github.com/oxigraph/oxigraph) SPARQL endpoint by right clicking RDF files in the explorer. Then execute the queries against this embedded endpoint using the `local://sparql-endpoint` URL.
 
-Results are displayed in the **SPARQL Results** panel using [YASGUI](https://github.com/rdfjs/Yasgui) YASR component, with plugins for:
+Results are displayed in the **SPARQL Results** panel using the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component, with plugins for:
 
-- Graph visualization of `CONSTRUCT` query results
-- Map visualization of Geo SPARQL results
+- [Graph visualization](https://github.com/Matdata-eu/yasgui-graph-plugin) of `CONSTRUCT` query results
+- [Map visualization](https://github.com/Thib-G/yasgui-geo-tg) of GeoSPARQL results
 
 ![Screenshot geo query](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-geo.png)
 
 ### Configuration
 
-Click the ⚙️ button in the file header, or **right-click → Configure SPARQL Language Server** to open the settings editor.
+- General Language server behavior for formatting, completion and prefixes are configured in VSCode settings (`sparql-qlue.`)
 
-- Language server behavior settings are persisted to workspace settings (`sparql-qlue.`)
-- Backends with custom prefixes and completion queries per endpoint stored in global state.
+- Endpoints backends are initialized with defaults and metadata retrieved from endpoint, they can be further configured in the settings panel.
+
+  Click the **SPARQL Qlue** item in the bottom status bar, or use the dropdown button in the file header, or right-click → **Configure SPARQL Language Server** to open the settings editor.
 
 ![Screenshot settings](https://raw.github.com/vemonet/sparql-qlue-vsx/refs/heads/main/docs/screenshot-settings.png)
 

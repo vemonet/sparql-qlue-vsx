@@ -30,7 +30,7 @@
         font-family: var(--vscode-font-family);
         font-size: var(--vscode-font-size);
         margin: 0;
-        padding: 16px 20px 24px;
+        padding: 8px 20px 24px;
         max-width: 680px;
       }
       h1 {
@@ -46,7 +46,7 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--desc-fg);
-        margin: 22px 0 6px;
+        margin: 14px 0 6px;
       }
       /* Open settings link */
       .open-settings-link {
@@ -169,6 +169,71 @@
       }
       .subsection-body.open {
         display: block;
+      }
+      /* Extracted from endpoint section */
+      .extracted-section {
+        margin: 0 0 12px;
+      }
+      .extracted-title {
+        font-size: 0.78em;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--desc-fg);
+        margin: 0 0 5px;
+      }
+      .extracted-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.82em;
+        font-weight: 600;
+        color: var(--vscode-textLink-foreground);
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        padding: 2px 0;
+      }
+      .extracted-item:hover {
+        text-decoration: underline;
+      }
+      .extracted-chevron {
+        font-size: 0.72em;
+        transition: transform 0.15s;
+        flex-shrink: 0;
+        color: var(--vscode-textLink-foreground);
+      }
+      .extracted-chevron.open {
+        transform: rotate(90deg);
+      }
+      .extracted-body {
+        display: none;
+        margin: 4px 0 6px 14px;
+      }
+      .extracted-body.open {
+        display: block;
+      }
+      .stat-popover {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        background: var(--vscode-editorWidget-background, var(--bg));
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 6px 0;
+        min-width: 220px;
+        max-height: 400px;
+        overflow-y: auto;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      }
+      .stat-popover-item {
+        padding: 3px 12px;
+        font-size: 0.82em;
+        font-family: var(--vscode-editor-font-family, monospace);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       /* Prefix map table */
       .prefix-table {
@@ -373,14 +438,14 @@
   <body>
     <button id="float-save-btn" class="float-save-btn">💾 Save changes</button>
 
-    <h1>SPARQL Qlue Settings</h1>
+    <!-- <h1>SPARQL Qlue Backends Settings</h1> -->
 
-    <h2>Endpoint Backends</h2>
+    <h2>Configure Endpoint Backends</h2>
     <div id="endpoints-section"></div>
 
-    <h2>Language Server Settings</h2>
+    <h2>Configure Language Server</h2>
     <p class="ack">
-      To configure settings for formatting, completion, and prefixes:
+      Configure the language server behavior for formatting, completion, and prefixes:
       <button id="open-settings-btn" class="open-settings-link">
         Open the SPARQL Qlue extension VSCode settings &rarr;
       </button>
@@ -392,7 +457,7 @@
       <b><a href="https://github.com/IoannisNezis/Qlue-ls">qlue-ls</a></b> language server running via WebAssembly.
     </p>
     <p class="ack">
-      Query execution and results display using the
+      Query results displayed using the
       <a href="https://github.com/rdfjs/Yasgui">YASGUI</a> YASR component.
     </p>
     <p class="ack">
@@ -608,18 +673,25 @@
           const body = document.createElement('div');
           body.className = 'endpoint-body';
 
-          // Prefix map sub-section
-          const pfxSection = document.createElement('div');
-          const pfxTitle = document.createElement('div');
-          pfxTitle.className = 'endpoint-subsection-title collapsible';
+          // "Extracted from endpoint" unified section
+          const extractedSection = document.createElement('div');
+          extractedSection.className = 'extracted-section';
+          const extractedTitle = document.createElement('div');
+          extractedTitle.className = 'extracted-title';
+          extractedTitle.textContent = 'Extracted from endpoint';
+          extractedSection.appendChild(extractedTitle);
+
+          // Prefixes item (expandable)
+          const pfxCount = Object.keys(cfg.prefixMap || {}).length;
+          const pfxItem = document.createElement('div');
+          pfxItem.className = 'extracted-item';
           const pfxChevron = document.createElement('span');
-          pfxChevron.className = 'subsection-chevron';
+          pfxChevron.className = 'extracted-chevron';
           pfxChevron.textContent = '▶';
-          pfxTitle.appendChild(pfxChevron);
-          pfxTitle.appendChild(document.createTextNode('Prefix Map'));
-          pfxSection.appendChild(pfxTitle);
+          pfxItem.appendChild(pfxChevron);
+          pfxItem.appendChild(document.createTextNode(`${pfxCount} prefixes`));
           const pfxBody = document.createElement('div');
-          pfxBody.className = 'subsection-body';
+          pfxBody.className = 'extracted-body';
           const table = document.createElement('table');
           table.className = 'prefix-table';
           table.innerHTML = '<thead><tr><th>Prefix</th><th>Namespace</th><th></th></tr></thead>';
@@ -630,11 +702,71 @@
           addBtn.textContent = '+ Add prefix';
           pfxBody.appendChild(table);
           pfxBody.appendChild(addBtn);
-          pfxSection.appendChild(pfxBody);
-          pfxTitle.addEventListener('click', () => {
+          pfxItem.addEventListener('click', () => {
             pfxBody.classList.toggle('open');
             pfxChevron.classList.toggle('open');
           });
+          extractedSection.appendChild(pfxItem);
+          extractedSection.appendChild(pfxBody);
+
+          // Examples item
+          const exCount = (cfg.examples || []).length;
+          if (exCount > 0) {
+            const exItem = document.createElement('div');
+            exItem.className = 'extracted-item';
+            const exChevron = document.createElement('span');
+            exChevron.className = 'extracted-chevron';
+            exChevron.textContent = '▶';
+            exItem.appendChild(exChevron);
+            exItem.appendChild(document.createTextNode(`${exCount} examples`));
+            exItem.title = 'Open an example query';
+            exItem.addEventListener('click', (e) => {
+              e.stopPropagation();
+              vscode.postMessage({ type: 'openExamplesForEndpoint', endpointUrl: url });
+            });
+            extractedSection.appendChild(exItem);
+          }
+
+          // Classes item
+          const classes = [...new Set((cfg.classSchemas || []).map((cs) => cs.subjectClass))].sort();
+          if (classes.length > 0) {
+            const clsItem = document.createElement('div');
+            clsItem.className = 'extracted-item';
+            const clsChevron = document.createElement('span');
+            clsChevron.className = 'extracted-chevron';
+            clsChevron.textContent = '▶';
+            clsItem.appendChild(clsChevron);
+            clsItem.appendChild(document.createTextNode(`${classes.length} classes`));
+            clsItem.title = 'Show indexed classes';
+            clsItem.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const existing = clsItem.querySelector('.stat-popover');
+              if (existing) {
+                existing.remove();
+                return;
+              }
+              const pop = document.createElement('div');
+              pop.className = 'stat-popover';
+              for (const cls of classes) {
+                const row = document.createElement('div');
+                row.className = 'stat-popover-item';
+                row.textContent = cls;
+                row.title = cls;
+                pop.appendChild(row);
+              }
+              clsItem.appendChild(pop);
+              const close = (ev) => {
+                if (!clsItem.contains(ev.target)) {
+                  pop.remove();
+                  document.removeEventListener('click', close);
+                }
+              };
+              document.addEventListener('click', close);
+            });
+            extractedSection.appendChild(clsItem);
+          }
+
+          body.appendChild(extractedSection);
 
           // Queries sub-section
           const qSection = document.createElement('div');
@@ -647,7 +779,6 @@
           const queriesContainer = document.createElement('div');
           qSection.appendChild(queriesContainer);
 
-          body.appendChild(pfxSection);
           body.appendChild(qSection);
           item.appendChild(header);
           item.appendChild(body);

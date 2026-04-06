@@ -38,7 +38,30 @@ export class SettingsPanel {
       activeEndpointUrl ?? '',
     );
     panel.webview.onDidReceiveMessage(async (message) => {
-      if (message.type === 'openVscodeSettings') {
+      if (message.type === 'openExamplesForEndpoint') {
+        const endpointUrl = message.endpointUrl as string;
+        const examples = state.getBackends()[endpointUrl]?.examples ?? [];
+        if (examples.length === 0) {
+          vscode.window.showInformationMessage(`No examples indexed for ${endpointUrl}.`);
+          return;
+        }
+        const picked = await vscode.window.showQuickPick(
+          examples.map((ex) => ({
+            label: ex.comment,
+            detail: ex.query.replace(/\s+/g, ' ').slice(0, 120),
+            query: ex.query,
+          })),
+          { placeHolder: `Pick an example from ${endpointUrl}`, matchOnDetail: true },
+        );
+        if (!picked) {
+          return;
+        }
+        const doc = await vscode.workspace.openTextDocument({
+          language: 'sparql',
+          content: `#+ endpoint: ${endpointUrl}\n${picked.query}`,
+        });
+        await vscode.window.showTextDocument(doc);
+      } else if (message.type === 'openVscodeSettings') {
         await vscode.commands.executeCommand('workbench.action.openSettings', 'sparql-qlue');
       } else if (message.type === 'saveEndpointBackend') {
         if (onSaveEndpointBackend) {
