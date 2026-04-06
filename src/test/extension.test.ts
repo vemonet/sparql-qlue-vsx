@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 
 const EXTENSION_ID = 'vemonet.sparql-qlue';
 const SPARQL_QUERY = 'SELECT * WHERE { ?s ?p ?o } LIMIT 10';
+const UNIPROT_ENDPOINT = 'https://sparql.uniprot.org/sparql';
+const UP_PREFIX = 'PREFIX up: <http://purl.uniprot.org/core/>';
 
 suite('Extension activation', () => {
   let extension: vscode.Extension<unknown>;
@@ -50,11 +52,8 @@ suite('Extension SPARQL language recognition', () => {
 
 suite('Extension executeQuery command guard', () => {
   test('shows a warning when no SPARQL editor is active (non-sparql doc)', async () => {
-    // Open a plain-text document so there is no active SPARQL editor
     const doc = await vscode.workspace.openTextDocument({ language: 'plaintext', content: 'hello' });
     await vscode.window.showTextDocument(doc);
-
-    // The command should silently guard (no throw) even with no SPARQL editor open
     try {
       await vscode.commands.executeCommand('sparql-qlue.executeQuery');
     } catch (e) {
@@ -63,9 +62,8 @@ suite('Extension executeQuery command guard', () => {
   });
 });
 
-// Retry calling the format provider until the WASM LSP returns actual edits,
-// so subsequent tests can rely on the server being fully ready.
-async function waitForLsp(timeoutMs = 1000): Promise<void> {
+/** Poll the format provider until the WASM LSP returns actual edits. */
+async function waitForLsp(timeoutMs = 10000): Promise<void> {
   const probe = await vscode.workspace.openTextDocument({ language: 'sparql', content: 'select *where{?s?p?o}' });
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -81,13 +79,64 @@ async function waitForLsp(timeoutMs = 1000): Promise<void> {
   throw new Error('Timed out waiting for the SPARQL LSP to become ready');
 }
 
-suite('Extension LSP language features', () => {
-  suiteSetup(async () => {
+/** Poll completions after `up:` until the UniProt backend is indexed and returns items. */
+async function waitForBackend(timeoutMs = 60000): Promise<void> {
+  const content = `${UP_PREFIX}\nSELECT * WHERE { ?s up:`;
+  const probe = await vscode.workspace.openTextDocument({ language: 'sparql', content });
+  // Column is at the very end of line 1, right after `up:`
+  const position = new vscode.Position(1, 'SELECT * WHERE { ?s up:'.length);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const list = await vscode.commands.executeCommand<vscode.CompletionList>(
+      'vscode.executeCompletionItemProvider',
+      probe.uri,
+      position,
+    );
+    const items =
+      list instanceof vscode.CompletionList
+        ? list.items
+        : ((list as unknown as { items: vscode.CompletionItem[] })?.items ?? []);
+    if (items.length > 0) {
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  throw new Error('Timed out waiting for UniProt backend to be indexed');
+}
+
+function completionItems(list: vscode.CompletionList | unknown): vscode.CompletionItem[] {
+  return list instanceof vscode.CompletionList
+    ? list.items
+    : ((list as unknown as { items: vscode.CompletionItem[] })?.items ?? []);
+}
+
+function itemLabel(item: vscode.CompletionItem): string {
+  return typeof item.label === 'string' ? item.label : (item.label as vscode.CompletionItemLabel).label;
+}
+
+suite('Extension LSP language features', function () {
+  // Increase suite timeout to accommodate UniProt indexing (prefix/class/example fetching)
+  this.timeout(120000);
+
+  suiteSetup(async function () {
+    this.timeout(120000);
     const extension = vscode.extensions.getExtension(EXTENSION_ID)!;
     if (!extension.isActive) {
       await extension.activate();
     }
     await waitForLsp();
+
+    // Register UniProt as backend — triggers background indexing of prefixes/classes/examples
+    const backendDoc = await vscode.workspace.openTextDocument({
+      language: 'sparql',
+      content: `#+ endpoint: ${UNIPROT_ENDPOINT}\nSELECT * WHERE { ?s ?p ?o }`,
+    });
+    await (extension.exports as { useDocEndpoint: (doc: vscode.TextDocument) => Promise<void> }).useDocEndpoint(
+      backendDoc,
+    );
+
+    // Wait until the LS has indexed UniProt predicates (smart poll on `up:` completions)
+    await waitForBackend();
   });
 
   test('format document: edits are applied and keywords are capitalised', async () => {
@@ -105,118 +154,97 @@ suite('Extension LSP language features', () => {
         builder.replace(edit.range, edit.newText);
       }
     });
-    assert.ok(applied, 'edits should apply to the document successfully');
+    assert.ok(applied, 'edits should apply successfully');
     const result = doc.getText();
-    assert.notStrictEqual(result, unformatted, 'formatted output should differ from the unformatted input');
+    assert.notStrictEqual(result, unformatted, 'formatted output should differ from the input');
     assert.ok(result.includes('SELECT'), 'formatted query should capitalise SELECT');
     assert.ok(result.includes('WHERE'), 'formatted query should capitalise WHERE');
   });
 
-  test('hover provider: returns a response at a SPARQL token position', async () => {
-    const query = 'SELECT * WHERE { ?s ?p ?o }';
+  test('hover provider: returns content over a UniProt prefixed IRI', async () => {
+    const query = `${UP_PREFIX}\nSELECT * WHERE { ?s up:organism ?o }`;
     const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content: query });
     await vscode.window.showTextDocument(doc);
-    // Position over `?s` (the subject variable)
-    const position = new vscode.Position(0, 17);
+    // Position inside `up:organism` on line 1 — `up:organism` starts at col 19
+    const position = new vscode.Position(1, 22);
     const hovers = await vscode.commands.executeCommand<vscode.Hover[]>(
       'vscode.executeHoverProvider',
       doc.uri,
       position,
     );
     assert.ok(Array.isArray(hovers), 'hover provider should return an array');
+    assert.ok(hovers.length > 0, 'hover should return results for up:organism');
+    const hoverText = hovers
+      .flatMap((h) => h.contents)
+      .map((c) => (typeof c === 'string' ? c : (c as vscode.MarkdownString).value))
+      .join('');
+    assert.ok(hoverText.length > 0, `hover content should be non-empty, got: "${hoverText}"`);
+    assert.ok(
+      hoverText.includes('uniprot') || hoverText.includes('organism') || hoverText.includes('http'),
+      `hover should reference UniProt IRI, got: "${hoverText}"`,
+    );
   });
 
-  test('completion provider: returns a completion list at a predicate position', async () => {
-    // Position cursor right after `?s ` to trigger predicate completion
-    const query = 'SELECT * WHERE { ?s ';
-    const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content: query });
+  test('completion provider: returns UniProt predicates after up: prefix', async () => {
+    const content = `${UP_PREFIX}\nSELECT * WHERE { ?s up:`;
+    const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content });
     await vscode.window.showTextDocument(doc);
-    const position = new vscode.Position(0, query.length);
+    const position = new vscode.Position(1, 'SELECT * WHERE { ?s up:'.length);
     const list = await vscode.commands.executeCommand<vscode.CompletionList>(
       'vscode.executeCompletionItemProvider',
       doc.uri,
       position,
     );
-    assert.ok(list !== undefined && list !== null, 'completion provider should return a result');
+    assert.ok(list !== undefined && list !== null, 'completion should return a result');
+    const items = completionItems(list);
+    assert.ok(items.length > 0, `expected UniProt predicate completions after up:, got ${items.length} items`);
+    const labels = items.map(itemLabel);
     assert.ok(
-      list instanceof vscode.CompletionList || Array.isArray((list as any)?.items),
-      'completion result should be a CompletionList',
+      labels.some((l) => l.startsWith('up:') || l.includes('organism') || l.includes('Protein')),
+      `expected UniProt terms among completions, got: [${labels.slice(0, 8).join(', ')}]`,
     );
   });
 });
 
-// suite('Extension LSP language features', () => {
-//   suiteSetup(async () => {
-//     const extension = vscode.extensions.getExtension(EXTENSION_ID)!;
-//     if (!extension.isActive) {
-//       await extension.activate();
-//     }
-//     await waitForLsp();
-//     // Register a backend so completion queries have a target endpoint.
-//     // We open a doc with an inline endpoint comment and let the extension wire it up.
-//     const backendDoc = await vscode.workspace.openTextDocument({
-//       language: 'sparql',
-//       content: '#+ endpoint: https://sparql.uniprot.org/sparql\nselect * where { ?s ?p ?o }',
-//     });
-//     await (extension.exports as { useDocEndpoint: (doc: vscode.TextDocument) => Promise<void> }).useDocEndpoint(
-//       backendDoc,
-//     );
-//   });
+suite('Extension execute query', function () {
+  this.timeout(30000);
 
-//   test('format document: edits are applied and keywords are capitalised', async () => {
-//     const unformatted = 'select *where{?s?p?o}';
-//     const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content: unformatted });
-//     const editor = await vscode.window.showTextDocument(doc);
-//     const edits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
-//       'vscode.executeFormatDocumentProvider',
-//       doc.uri,
-//     );
+  suiteSetup(async function () {
+    this.timeout(30000);
+    const extension = vscode.extensions.getExtension(EXTENSION_ID)!;
+    if (!extension.isActive) {
+      await extension.activate();
+    }
+  });
 
-//     assert.ok(Array.isArray(edits) && edits.length > 0, 'LSP formatter should return at least one edit');
-//     assert.ok(edits[0] instanceof vscode.TextEdit, 'edits should be vscode.TextEdit instances');
-//     const applied = await editor.edit((builder) => {
-//       for (const edit of edits) {
-//         builder.replace(edit.range, edit.newText);
-//       }
-//     });
-//     assert.ok(applied, 'edits should apply to the document successfully');
-//     const result = doc.getText();
-//     assert.notStrictEqual(result, unformatted, 'formatted output should differ from the unformatted input');
-//     assert.ok(result.includes('SELECT'), 'formatted query should capitalise SELECT');
-//     assert.ok(result.includes('WHERE'), 'formatted query should capitalise WHERE');
-//   });
+  test('executeQuery command does not throw when SPARQL doc is active', async () => {
+    const content = `#+ endpoint: ${UNIPROT_ENDPOINT}\n${UP_PREFIX}\nSELECT * WHERE { ?s ?p ?o } LIMIT 5`;
+    const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content });
+    await vscode.window.showTextDocument(doc);
+    try {
+      await vscode.commands.executeCommand('sparql-qlue.executeQuery');
+    } catch (e) {
+      assert.fail(`executeQuery should not throw: ${e}`);
+    }
+  });
 
-//   test('hover provider: returns a response at a SPARQL token position', async () => {
-//     const query =
-//       '#+ endpoint: https://sparql.uniprot.org/sparql\nPREFIX up: <http://purl.uniprot.org/core/>\nSELECT * WHERE { up:organism ?p ?o }';
-//     const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content: query });
-//     await vscode.window.showTextDocument(doc);
-//     // Position over `?s` (the subject variable)
-//     const position = new vscode.Position(2, 17);
-//     const hovers = await vscode.commands.executeCommand<vscode.Hover[]>(
-//       'vscode.executeHoverProvider',
-//       doc.uri,
-//       position,
-//     );
-//     assert.ok(Array.isArray(hovers), 'hover provider should return an array');
-//     assert.ok(hovers.length > 0, 'hover provider should return at least one hover');
-//   });
-
-//   test('completion provider: returns a completion list at a predicate position', async () => {
-//     // Position cursor right after `?s ` to trigger predicate completion
-//     const query = '#+ endpoint: https://sparql.uniprot.org/sparql\nSELECT * WHERE { ?s ';
-//     const doc = await vscode.workspace.openTextDocument({ language: 'sparql', content: query });
-//     await vscode.window.showTextDocument(doc);
-//     const position = new vscode.Position(1, query.length);
-//     const list = await vscode.commands.executeCommand<vscode.CompletionList>(
-//       'vscode.executeCompletionItemProvider',
-//       doc.uri,
-//       position,
-//     );
-//     assert.ok(list !== undefined && list !== null, 'completion provider should return a result');
-//     assert.ok(
-//       list instanceof vscode.CompletionList || Array.isArray((list as any)?.items),
-//       'completion result should be a CompletionList',
-//     );
-//   });
-// });
+  test('UniProt endpoint returns valid SPARQL JSON results', async () => {
+    const query = 'SELECT * WHERE { ?s ?p ?o } LIMIT 5';
+    const url = new URL(UNIPROT_ENDPOINT);
+    url.searchParams.set('query', query);
+    const resp = await fetch(url.toString(), {
+      headers: { Accept: 'application/sparql-results+json' },
+    });
+    assert.ok(resp.ok, `UniProt endpoint returned HTTP ${resp.status}`);
+    const contentType = resp.headers.get('content-type') ?? '';
+    assert.ok(
+      contentType.includes('json') || contentType.includes('sparql-results'),
+      `expected JSON content-type, got: ${contentType}`,
+    );
+    const json = (await resp.json()) as { results?: { bindings?: unknown[] } };
+    const results = json.results;
+    assert.ok(results, 'response should have a results field');
+    assert.ok(Array.isArray(results!.bindings), 'results.bindings should be an array');
+    assert.ok((results!.bindings ?? []).length > 0, 'results.bindings should be non-empty');
+  });
+});
