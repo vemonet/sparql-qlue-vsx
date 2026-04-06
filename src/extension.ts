@@ -127,14 +127,15 @@ async function useBackend(endpointUrl: string): Promise<void> {
   if (!endpointUrl) {
     return;
   }
-  currentEndpoint = endpointUrl;
-  updateStatusBar();
 
   // Local Oxigraph store: no LS registration or remote prefix/example fetching
   if (endpointUrl === localEndpoint.url) {
+    currentEndpoint = endpointUrl;
+    updateStatusBar();
     queryPanel?.setActiveBackendUrl(endpointUrl);
     return;
   }
+
   const backends = state.getBackends();
   let backend = backends[endpointUrl];
   const isNew = !backend;
@@ -152,6 +153,9 @@ async function useBackend(endpointUrl: string): Promise<void> {
     );
     return;
   }
+  // Only update currentEndpoint after LS has accepted the backend
+  currentEndpoint = endpointUrl;
+  updateStatusBar();
   queryPanel?.setActiveBackendUrl(endpointUrl, backend);
 
   // Fetch metadata in the background when needed, without blocking the caller
@@ -180,14 +184,14 @@ async function fetchBackendMetadata(endpointUrl: string, fetchPrefixes: boolean)
       const prefixMap = rawPrefixes !== null ? buildPrefixMap(rawPrefixes) : current.prefixMap;
       const updated: BackendConfig = { ...current, prefixMap, examples, classSchemas };
       await state.setBackends({ ...state.getBackends(), [endpointUrl]: updated });
-      if (rawPrefixes !== null) {
-        // Re-register with the LS now that we have real prefixes
-        await languageServer.useBackend(endpointUrl, updated).catch(() => {});
-        queryPanel?.setActiveBackendUrl(endpointUrl, updated);
-      }
       indexBackend(endpointUrl, updated);
-      queryPanel?.setActiveBackendUrl(endpointUrl, updated);
+      // Only update the LS and UI if this endpoint is still the active one
       if (endpointUrl === currentEndpoint) {
+        if (rawPrefixes !== null) {
+          // Re-register with the LS now that we have real prefixes
+          await languageServer.useBackend(endpointUrl, updated).catch(() => {});
+        }
+        queryPanel?.setActiveBackendUrl(endpointUrl, updated);
         updateStatusBar();
       }
     },
@@ -493,9 +497,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       if (!seedEndpoint) {
         // No endpoint from the file, restore the last known endpoint from persisted state
-        const backends = state.getBackends();
-        const saved = state.getSavedEndpoints();
-        seedEndpoint = saved.find((url) => backends[url]) ?? Object.keys(backends)[0] ?? '';
+        seedEndpoint = Object.keys(state.getBackends())[0] ?? '';
       }
       if (seedEndpoint) {
         await useBackend(seedEndpoint);
