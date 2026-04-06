@@ -24,14 +24,21 @@ export class LocalEndpoint {
   public readonly url = 'local://sparql-endpoint';
   private store: import('oxigraph').Store | null = null;
   private tripleCount = 0;
-  private loadedFiles: string[] = [];
+  private loadedFiles: vscode.Uri[] = [];
 
   isLoaded(): boolean {
     return this.store !== null && this.tripleCount > 0;
   }
 
-  getInfo(): { triples: number; files: string[] } {
-    return { triples: this.tripleCount, files: [...this.loadedFiles] };
+  getInfo(): { triples: number; files: Array<{ label: string; uri: string }> } {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
+    return {
+      triples: this.tripleCount,
+      files: this.loadedFiles.map((uri) => ({
+        label: workspaceRoot ? vscode.workspace.asRelativePath(uri) : uri.fsPath,
+        uri: uri.toString(),
+      })),
+    };
   }
 
   async addFile(uri: vscode.Uri): Promise<number> {
@@ -58,9 +65,8 @@ export class LocalEndpoint {
       this.store.load(content, { format: mimeType, base_iri: uri.toString() });
     }
     this.tripleCount = this.store.size;
-    const fileName = uri.path.split('/').pop() ?? uri.path;
-    if (!this.loadedFiles.includes(fileName)) {
-      this.loadedFiles.push(fileName);
+    if (!this.loadedFiles.some((f) => f.toString() === uri.toString())) {
+      this.loadedFiles.push(uri);
     }
     return this.tripleCount;
   }
@@ -68,7 +74,7 @@ export class LocalEndpoint {
   reset(): void {
     this.store = null;
     this.tripleCount = 0;
-    this.loadedFiles = [];
+    this.loadedFiles = [] as vscode.Uri[];
   }
 
   query(query: string, queryType: string): LocalQueryResult {

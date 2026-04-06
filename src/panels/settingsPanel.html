@@ -433,6 +433,52 @@
       .ack a:hover {
         text-decoration: underline;
       }
+
+      /* Local endpoint info */
+      .local-endpoint-info {
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 10px 14px;
+        font-size: 0.88em;
+        background: var(--input-bg);
+      }
+      .local-endpoint-stat {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 6px;
+      }
+      .local-endpoint-stat:last-child {
+        margin-bottom: 0;
+      }
+      .local-endpoint-stat-label {
+        color: var(--desc-fg);
+        min-width: 70px;
+        flex-shrink: 0;
+      }
+      .local-endpoint-stat-value {
+        font-family: var(--vscode-editor-font-family, monospace);
+        font-weight: 600;
+      }
+      .local-endpoint-files {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 2px;
+      }
+      .local-endpoint-file {
+        font-family: var(--vscode-editor-font-family, monospace);
+        font-size: 0.95em;
+        color: var(--vscode-textLink-foreground);
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        text-align: left;
+      }
+      .local-endpoint-file:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -450,6 +496,11 @@
         Open the SPARQL Qlue extension VSCode settings &rarr;
       </button>
     </p>
+
+    <div id="local-endpoint-section" style="display: none">
+      <h2>Local Endpoint</h2>
+      <div id="local-endpoint-body"></div>
+    </div>
 
     <h2>Acknowledgements</h2>
     <p class="ack">
@@ -471,6 +522,7 @@
       const vscode = acquireVsCodeApi();
       const initialEndpointBackends = __ENDPOINT_BACKENDS__;
       let activeEndpointUrl = __ACTIVE_ENDPOINT__;
+      let localEndpointInfo = __LOCAL_ENDPOINT_INFO__;
 
       // ── SPARQL syntax highlighter ──────────────────────────────────────
 
@@ -824,6 +876,61 @@
 
       renderEndpoints(endpointBackends);
 
+      // ── Local endpoint info ────────────────────────────────────────────────
+
+      function renderLocalEndpoint(info) {
+        const section = document.getElementById('local-endpoint-section');
+        const body = document.getElementById('local-endpoint-body');
+        if (!info || info.files.length === 0) {
+          section.style.display = 'none';
+          return;
+        }
+        section.style.display = '';
+        body.innerHTML = '';
+
+        const card = document.createElement('div');
+        card.className = 'local-endpoint-info';
+
+        // Triples row
+        const triplesRow = document.createElement('div');
+        triplesRow.className = 'local-endpoint-stat';
+        const triplesLabel = document.createElement('span');
+        triplesLabel.className = 'local-endpoint-stat-label';
+        triplesLabel.textContent = 'Triples';
+        const triplesValue = document.createElement('span');
+        triplesValue.className = 'local-endpoint-stat-value';
+        triplesValue.textContent = info.triples.toLocaleString();
+        triplesRow.appendChild(triplesLabel);
+        triplesRow.appendChild(triplesValue);
+        card.appendChild(triplesRow);
+
+        // Files row
+        const filesRow = document.createElement('div');
+        filesRow.className = 'local-endpoint-stat';
+        const filesLabel = document.createElement('span');
+        filesLabel.className = 'local-endpoint-stat-label';
+        filesLabel.textContent = 'Files';
+        const filesList = document.createElement('div');
+        filesList.className = 'local-endpoint-files';
+        for (const file of info.files) {
+          const btn = document.createElement('button');
+          btn.className = 'local-endpoint-file';
+          btn.textContent = file.label;
+          btn.title = file.label;
+          btn.addEventListener('click', () => {
+            vscode.postMessage({ type: 'openLocalFile', uri: file.uri });
+          });
+          filesList.appendChild(btn);
+        }
+        filesRow.appendChild(filesLabel);
+        filesRow.appendChild(filesList);
+        card.appendChild(filesRow);
+
+        body.appendChild(card);
+      }
+
+      renderLocalEndpoint(localEndpointInfo);
+
       document.getElementById('open-settings-btn').addEventListener('click', () => {
         vscode.postMessage({ type: 'openVscodeSettings' });
       });
@@ -838,6 +945,10 @@
             for (const key of Object.keys(endpointBackends)) delete endpointBackends[key];
             Object.assign(endpointBackends, msg.endpointBackends);
             renderEndpoints(endpointBackends);
+          }
+          if (msg.localEndpointInfo !== undefined) {
+            localEndpointInfo = msg.localEndpointInfo;
+            renderLocalEndpoint(localEndpointInfo);
           }
         }
       });
