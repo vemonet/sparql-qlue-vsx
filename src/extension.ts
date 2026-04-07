@@ -397,7 +397,9 @@ export async function activate(context: vscode.ExtensionContext) {
         const count = await localEndpoint.addFile(targetUri);
         const { files } = localEndpoint.getInfo();
         queryPanel?.refreshEndpoints();
-        vscode.window.showInformationMessage(`Local SPARQL endpoint: ${count} triples loaded (${files.join(', ')})`);
+        vscode.window.showInformationMessage(
+          `Local SPARQL endpoint: ${count} triples loaded (${files.map((f) => f.label).join(', ')})`,
+        );
       } catch (err: unknown) {
         vscode.window.showErrorMessage(`Failed to load RDF file: ${err instanceof Error ? err.message : String(err)}`);
       }
