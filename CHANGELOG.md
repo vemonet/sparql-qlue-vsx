@@ -1,5 +1,30 @@
 # 📜 Changelog
 
+## [0.0.9](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.8..v0.0.9) - 2026-04-09
+
+### ⛰️ Features
+
+- Users can now load local RDF files (.ttl, .nt, .trig, .nq, .rdf, .xml, .json, .jsonld) in a local embedded Oxigraph triplestore and use it as target endpoint when running the SPARQL queries - ([d5607b0](https://github.com/vemonet/sparql-qlue-vsx/commit/d5607b00bf7b6c6ea0dca6f512a112cf97886c3d))
+- When opening settings panel the backend of the current file is highlighted - ([4704a67](https://github.com/vemonet/sparql-qlue-vsx/commit/4704a6717a9c4e01a1b8eb90c52638d0d00e85fe))
+- Add section to summarize local endpoint in settings - ([2e2205e](https://github.com/vemonet/sparql-qlue-vsx/commit/2e2205e21204de59232f799a0632dce71b9fbb09))
+- Feat: show local endpoint info (triples count, files loaded) in the settings panel
+  fix: fix loaded file uri in info msg - ([a4bd7d4](https://github.com/vemonet/sparql-qlue-vsx/commit/a4bd7d477bf1ca5ca9ef3d489d4832620571bfba))
+
+### 🐛 Bug Fixes
+
+- Improve how we wait for LS to be ready to fix issues with backend undefined - ([a881d39](https://github.com/vemonet/sparql-qlue-vsx/commit/a881d39dc09e29d774d411fd25619b9a866e98de))
+
+### 🚜 Refactor
+
+- Improve how backend is retrieved to avoid blocking UI while indexing endpoint - ([55f0fd6](https://github.com/vemonet/sparql-qlue-vsx/commit/55f0fd6db70fcbac8c824d5a7dacb5e55fe339b4))
+- Remove general config from settings panel and add link to SPARQL Qlue in VSCode settings - ([e7df7cd](https://github.com/vemonet/sparql-qlue-vsx/commit/e7df7cda9b881bf6066a05c4a675080db1e93758))
+- Improve settings panel, add markdown tooltip on statusBarItem to show currently active backend - ([2b03452](https://github.com/vemonet/sparql-qlue-vsx/commit/2b034525a2bb97b4ff32b1b8a7ff9635c7341f2a))
+- Improve backend activation handling - ([40cf537](https://github.com/vemonet/sparql-qlue-vsx/commit/40cf5374001ac81380f3d42fd95d20be07367abf))
+
+### 🧪 Testing
+
+- Fix tests for hover and completion - ([e380629](https://github.com/vemonet/sparql-qlue-vsx/commit/e380629eb88f5f24e102b9936115a02c796e0212))
+
 ## [0.0.8](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.7..v0.0.8) - 2026-04-01
 
 ### 🐛 Bug Fixes
