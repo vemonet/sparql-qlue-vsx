@@ -1,12 +1,14 @@
 # 🫆 SPARQL Qlue
 
-A Visual Studio Code extension that provides support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files), using the **[Qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server:
+A Visual Studio Code extension that provides support for the [SPARQL](https://www.w3.org/TR/sparql12-query/) query language (`.rq`, `.sparql` files):
 
-- **Language intelligence**: relevant autocomplete, diagnostics, hover info
-- **Query quality**: formatting, refactoring, code actions
+- **[Qlue-ls](https://github.com/IoannisNezis/Qlue-ls)** language server developed by [Ioannis Nezis](https://github.com/IoannisNezis/)
+  - **Language intelligence**: relevant autocomplete, diagnostics, hover info
+  - **Query quality**: formatting, refactoring, code actions
+  - **Configurable**: queries used for completion, formatting behavior, etc
+
 - **Syntax highlighting** with semantic tokens to adapt to themes
 - **Query execution & results inspection** with the [YASGUI](https://github.com/rdfjs/Yasgui) YASR component, against remote endpoints, or a local embedded [oxigraph](https://github.com/oxigraph/oxigraph) triplestore
-- **Configuration** of the language server (queries used for completion, formatting behavior, etc)
 
 ## Installation
 
