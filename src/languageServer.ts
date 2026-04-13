@@ -145,6 +145,7 @@ export class SparqlLanguageServer {
       name: endpoint,
       url: endpoint,
       default: true,
+      engine: config.engine,
       prefixMap: config.prefixMap,
       queries: config.queries,
     });

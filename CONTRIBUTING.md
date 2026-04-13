@@ -50,15 +50,10 @@ npm version patch
 
 To do:
 
-- [ ] Instead of having all general settings in the settings panel we should just have the backends config, and a link to SPARQL Qlue settings in VSCode.
-- [ ] Support `qlue-ls.toml`: If present at root of project, load settings from there. When changes are made in settings tab. Edit the `qlue-ls.toml` if one, or editor settings. Otherwise we could simplify the system by not including settings there, and just putting backends config.
+- [ ] Support `qlue-ls.toml`: If present at root of project, load settings from there instead of VSCode. In setting panel add link to VSCode settings or `qlue-ls.toml` file depending what is used.
+- [ ] Make the fetch request sent for executing the SPARQL query configurable at the endpoint level (in backend config): GET/POST, headers, basic auth. It can all be configured in a new section inside the backend expand
+- [ ] Enable to have backend profiles with a set of pre-optimized completion queries for a given triplestore/ontology. For each backend users can load a profile (when expanding a backend conf in settings panel, there is a dropdown for loading profiles), then custom it further. For now just create 2: `default` profile, and `skos` profile (uses skos instead of rdfs)
 - [ ] When we store the class schema should we store it as a formatted string? So we can also easily support extracting and using SHACL/ShEx shapes without having to parse them. Migrate to SHACL shapes generated with with shapetrospection
-- [ ] Make the fetch request sent for executing the SPARQL query configurable at the endpoint level: GET/POST, headers, basic auth. It can all be configured in a new section inside the backend expand
-- [ ] Enable to have backend profiles with a set of pre-optimized completion queries for a given triplestore/ontology.
-- [ ] In qlue-ls
-  - [ ] `uvx qlue-ls format` should support reading `qlue-ls.toml` file auto when present, or to pass custom config with optional `--config`
-  - [ ] `uvx qlue-ls format *.rq` should work
-  - [ ] Make it so format put all comments `#+` at the start of the query
 
 Run tests:
 
@@ -74,6 +69,5 @@ Go further:
 
 - [Browse VSCode Icons](https://code.visualstudio.com/api/references/icons-in-labels)
 - [VSCode marketplace publisher manage page](https://marketplace.visualstudio.com/manage/)
-
 - Reduce the extension size and improve the startup time by [bundling your extension](https://code.visualstudio.com/api/working-with-extensions/bundling-extension).
 - Automate builds by setting up [Continuous Integration](https://code.visualstudio.com/api/working-with-extensions/continuous-integration).

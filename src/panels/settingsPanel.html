@@ -124,6 +124,25 @@
       .endpoint-body.open {
         display: flex;
       }
+      .engine-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .engine-label {
+        font-size: 0.82em;
+        color: var(--desc-fg);
+        flex-shrink: 0;
+      }
+      .engine-select {
+        font-size: 0.82em;
+        background: var(--vscode-dropdown-background, var(--input-bg));
+        color: var(--vscode-dropdown-foreground, var(--fg));
+        border: 1px solid var(--vscode-dropdown-border, var(--border));
+        border-radius: 3px;
+        padding: 2px 6px;
+        cursor: pointer;
+      }
       .endpoint-subsection-title {
         font-size: 0.78em;
         font-weight: 700;
@@ -602,6 +621,8 @@
 
       // ── Endpoint backends ──────────────────────────────────────────────
 
+      const SPARQL_ENGINES = ['QLever', 'GraphDB', 'Virtuoso', 'MillenniumDB', 'Blazegraph', 'Jena'];
+
       const QUERY_KEYS = [
         'subjectCompletion',
         'predicateCompletionContextInsensitive',
@@ -725,6 +746,33 @@
 
           const body = document.createElement('div');
           body.className = 'endpoint-body';
+
+          // Engine selector
+          const engineRow = document.createElement('div');
+          engineRow.className = 'engine-row';
+          const engineLabel = document.createElement('label');
+          engineLabel.textContent = 'Backend Engine';
+          engineLabel.className = 'engine-label';
+          const engineSelect = document.createElement('select');
+          engineSelect.className = 'engine-select';
+          const noneOpt = document.createElement('option');
+          noneOpt.value = '';
+          noneOpt.textContent = 'Auto-detect';
+          engineSelect.appendChild(noneOpt);
+          for (const eng of SPARQL_ENGINES) {
+            const opt = document.createElement('option');
+            opt.value = eng;
+            opt.textContent = eng;
+            engineSelect.appendChild(opt);
+          }
+          engineSelect.value = cfg.engine || '';
+          engineSelect.addEventListener('change', () => {
+            endpointBackends[url].engine = engineSelect.value || undefined;
+            saveEndpointBackend(url);
+          });
+          engineRow.appendChild(engineLabel);
+          engineRow.appendChild(engineSelect);
+          body.appendChild(engineRow);
 
           // "Extracted from endpoint" unified section
           const extractedSection = document.createElement('div');

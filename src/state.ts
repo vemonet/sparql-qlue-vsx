@@ -87,7 +87,12 @@ export interface ClassSchema {
   objectDatatype?: string;
 }
 
+export type SparqlEngine = 'QLever' | 'GraphDB' | 'Virtuoso' | 'MillenniumDB' | 'Blazegraph' | 'Jena';
+
+export const SPARQL_ENGINES: SparqlEngine[] = ['QLever', 'GraphDB', 'Virtuoso', 'MillenniumDB', 'Blazegraph', 'Jena'];
+
 export interface BackendConfig {
+  engine?: SparqlEngine;
   prefixMap: Record<string, string>;
   queries: Record<string, string>;
   examples?: SparqlExample[];
