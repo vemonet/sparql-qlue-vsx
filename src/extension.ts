@@ -10,7 +10,6 @@ import {
 import SettingsPanel from './panels/settingsPanel';
 import { SparqlLanguageServer } from './languageServer';
 import { DEFAULT_COMPLETION_QUERIES, ExtensionState, type BackendConfig } from './state';
-import { SPARQL_LEGEND, SparqlSemanticTokensProvider } from './semanticTokens';
 import { SearchIndex, type SearchDoc } from './searchIndex';
 import { registerTools } from './tools';
 import { localEndpoint } from './localEndpoint';
@@ -202,14 +201,6 @@ async function fetchBackendMetadata(endpointUrl: string, fetchPrefixes: boolean)
 export async function activate(context: vscode.ExtensionContext) {
   extensionContext = context;
   state = new ExtensionState(context);
-  // Register semantic token provider so our custom types override any active theme
-  context.subscriptions.push(
-    vscode.languages.registerDocumentSemanticTokensProvider(
-      { language: 'sparql' },
-      new SparqlSemanticTokensProvider(),
-      SPARQL_LEGEND,
-    ),
-  );
   // Status bar item (bottom-right) — hover shows backend info, click opens settings
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 101);
   statusBarItem.name = 'SPARQL Qlue';
