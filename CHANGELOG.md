@@ -1,5 +1,24 @@
 # 📜 Changelog
 
+## [0.0.10](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.9..v0.0.10) - 2026-05-31
+
+### ⛰️ Features
+
+- Enable to change Qlue-ls backend engine - ([0a5e703](https://github.com/vemonet/sparql-qlue-vsx/commit/0a5e7038312fcd4607a52684912212609534cc35))
+- Upgrade qlue-ls to 2.8.0, use the semantic highlight tokens provided by qlue-ls instead of locally defined semantic tokens - ([9eb65cb](https://github.com/vemonet/sparql-qlue-vsx/commit/9eb65cbf549716cd1f57bfdcc2ec064393aa490a))
+
+### 🐛 Bug Fixes
+
+- Fix engines vscode version to be compatible with vscode forks like antigravity - ([b7a4d46](https://github.com/vemonet/sparql-qlue-vsx/commit/b7a4d468e4781532c0d4d3bef6919ff668886bdd))
+
+### 📚 Documentation
+
+- Improve acknowledgements - ([b34f2f2](https://github.com/vemonet/sparql-qlue-vsx/commit/b34f2f2dccfed7de249046485598458e66a41634))
+
+### 🛠️ Miscellaneous Tasks
+
+- Upgrade dependencies - ([7931d69](https://github.com/vemonet/sparql-qlue-vsx/commit/7931d6987747c17809234cd945dd18222925cebf))
+
 ## [0.0.9](https://github.com/vemonet/sparql-qlue-vsx/compare/v0.0.8..v0.0.9) - 2026-04-09
 
 ### ⛰️ Features
